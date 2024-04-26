@@ -1,3 +1,9 @@
-Madison
+---COMPILATION AND EXECUTION INSTRUCTIONS---
 
-Tariq
+
+---WORKLOAD DISTRIBUTION---
+Madison Vo
+    * getConnection() function
+    * answerQueries() function
+
+Tariq Wilson
