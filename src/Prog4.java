@@ -4,7 +4,7 @@ import java.io.*;
 
 public class Prog4 {
     public static void main(String[] args) {
-        Connection dbConn;
+        Connection dbConn = null;
         // if there are a correct amount of command line arguments
         if (args.length == 2) {
             dbConn = getConnection(args);
@@ -14,6 +14,8 @@ public class Prog4 {
             System.err.println("Usage: java JDBC <username> <password>");
             System.exit(-1);
         }
+
+        answerQueries(dbConn);
     }
 
     /*
@@ -58,4 +60,72 @@ public class Prog4 {
 
         return dbConn;
     }
+
+    private static void answerQueries(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+
+        // continually prompt user for input on queries
+        while (true) {
+            // printing out menu of queries to choose from
+            System.out.println("\nQueries:");
+            System.out.println("(a) List all games in the arcade and the names of the members who" + 
+                                "have the current high scores");
+            System.out.println("(b) Give the names and membership information of all members who" + 
+                                "have spent at least $100 on tokens in the past month");
+            System.out.println("(c) For a given member, list all arcade rewards that they can purchase" +  
+                                "with their tickets");
+            // TODO: Create a non-trivial query of our own design
+            // TODO: Must be constructed using at least on piece of information gathered from user
+            System.out.println("(d) N/A"); 
+            System.out.println("(e) Exit\n");
+
+            // prompting input from user
+            System.out.println("Enter your query of choice (a, b, c, d, or e)");
+            String query = scanner.nextLine();
+
+            switch (query.toLowerCase()) {
+                // call queryA() for query a
+                case "a":
+                    queryA(dbConn);
+                    break;
+
+                // call queryB() for query b
+                case "b":
+                    queryB(dbConn);
+                    break;
+
+                // call queryC() for query c
+                case "c":
+                    queryC(dbConn);
+                    break;
+
+                // call queryD() for query d
+                case "d":
+                    queryD(dbConn);
+                    break;
+
+                // exit if user chose e
+                case "e":
+                    scanner.close();
+                    System.out.println("\n***Exiting***");
+                    System.exit(0);
+
+                // invalid input
+                default:
+                    System.out.println("\nPlease choose a valid query (a, b, c, d, or e)");
+            }
+        }
+    }
+
+    // TODO: Implement logic to answer query a
+    private static void queryA(Connection dbConn) {}
+
+    // TODO: Implement logic to answer query b
+    private static void queryB(Connection dbConn) {}
+
+    // TODO: Implement logic to answer query c
+    private static void queryC(Connection dbConn) {}
+
+    // TODO: Implement logic to answer query d
+    private static void queryD(Connection dbConn) {}
 }
