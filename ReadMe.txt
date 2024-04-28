@@ -7,3 +7,6 @@ Madison Vo
     * answerQueries() function
 
 Tariq Wilson
+    * createTables() function
+    * queryA() function
+    * queryB() functions
