@@ -17,9 +17,6 @@ public class Prog4 {
             System.err.println("Usage: java JDBC <username> <password>");
             System.exit(-1);
         }
-
-        // drop(dbConn);
-
         if (createTables(dbConn)) {
             System.out.println("Tables created successfully.");
             importMemberData(dbConn, "Member.csv");
@@ -35,7 +32,7 @@ public class Prog4 {
         }
 
         promptUpdate(dbConn);
-
+        
         answerQueries(dbConn);
     }
 
@@ -225,18 +222,32 @@ public class Prog4 {
             String line = null;
             while ((line = reader.readLine()) != null) {
                 String[] data = line.split(",");
+                for (int i = 0; i < data.length; i ++) {
+                    System.out.println(data[i]);
+                }
                 if (!rowExists(dbConn, tableName, data[0])) {
                     statement.setInt(1, Integer.valueOf(data[0]));
+                    System.out.println(1 + " successful");
                     statement.setString(2, data[1]);
+                    System.out.println(2 + " successful");
                     statement.setString(3, data[2]);
+                    System.out.println(3 + " successful");
                     statement.setString(4, data[3]);
+                    System.out.println(4 + " successful");
                     statement.setString(5, data[4]);
+                    System.out.println(5 + " successful");
                     statement.setInt(6, Integer.valueOf(data[5]));
+                    System.out.println(6 + " successful");
                     statement.setDouble(7, Double.valueOf(data[6]));
+                    System.out.println(7 + " successful");
                     statement.setString(8, data[7]);
+                    System.out.println(8 + " successful");
                     statement.setInt(9, Integer.valueOf(data[8]));
+                    System.out.println(9 + " successful");
                     statement.setDate(10, java.sql.Date.valueOf(data[9]));
+                    System.out.println(10 + " successful");
                     statement.setInt(11, Integer.valueOf(data[10]));
+                    System.out.println(11 + " successful");
 
                     statement.executeUpdate();
                 } else {
@@ -248,9 +259,9 @@ public class Prog4 {
             reader.close();
             statement.close();
         } catch (Exception e) {
-            System.err.println("Could not insert into database tables.");
-            e.printStackTrace();
-            System.exit(-1);
+            //System.err.println("Could not insert into database tables.");
+            //e.printStackTrace();
+            // System.exit(-1);
         }
     }
 
@@ -301,10 +312,15 @@ public class Prog4 {
                 String[] data = line.split(",");
                 if (!rowExists(dbConn, tableName, data[0])) {
                     statement.setInt(1, Integer.valueOf(data[0]));
+                    System.out.println(1 + " successful");
                     statement.setInt(2, Integer.valueOf(data[1]));
+                    System.out.println(2 + " successful");
                     statement.setInt(3, Integer.valueOf(data[2]));
+                    System.out.println(3 + " successful");
                     statement.setInt(4, Integer.valueOf(data[3]));
+                    System.out.println(4 + " successful");
                     statement.setInt(5, Integer.valueOf(data[4]));
+                    System.out.println(5 + " successful");
                     statement.setString(6, data[5]);
 
                     statement.executeUpdate();
@@ -471,6 +487,7 @@ public class Prog4 {
      */
     private static boolean rowExists(Connection dbConn, String tableName, String id) throws SQLException {
         String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + tableName + "ID = ?"; /* query to check for given id */
+        System.out.println(id);
         // try catch for checking for row in table
         try (PreparedStatement statement = dbConn.prepareStatement(query)) {
             // setting facility id to facility attribute index
@@ -498,7 +515,8 @@ public class Prog4 {
                     break;
 
                 case "n":
-                    return;
+                    scanner.close();
+                    break;
 
                 default:
                     System.out.println("\nPlease choose a valid answer (y/n)");
@@ -517,9 +535,11 @@ public class Prog4 {
                 break;
 
             case "game":
+                updateGame(dbConn);
                 break;
 
             case "prize":
+                updatePrize(dbConn);
                 break;
 
             case "default":
@@ -543,6 +563,370 @@ public class Prog4 {
 
             case "delete":
                 break;
+        }
+    }
+
+    
+    /*---------------------------------------------------------------------
+    |  Method deleteMember(connection)
+    |
+    |  Purpose:  Deletes a member from the Member table in the database
+    |            based on the provided Member ID.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: The specified member is deleted from the Member table
+    |                  if it exists.
+    |
+    |  Parameters:
+    |      connection -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
+    private static void deleteMember(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+    
+        System.out.println("Enter the Member ID of the member you want to delete:");
+        int memberId = scanner.nextInt();
+        scanner.nextLine(); // Consume newline character
+    
+        try {
+            PreparedStatement preparedStatement = dbConn.prepareStatement("DELETE FROM Member WHERE MemberID = ?");
+            preparedStatement.setInt(1, memberId);
+    
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Member with ID " + memberId + " deleted successfully.");
+            } else {
+                System.out.println("No member found with ID " + memberId + ".");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*---------------------------------------------------------------------
+    |  Method updatePrize(connection)
+    |
+    |  Purpose:  Provides options to add, update, or delete prize information
+    |            in the Prize table of the database.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: Prize information is added, updated, or deleted in the
+    |                  Prize table based on user input.
+    |
+    |  Parameters:
+    |      connection -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
+
+    private static void updatePrize(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("How would you like to update the Prize table? (Add/Update/Delete)");
+        String answer = scanner.nextLine();
+    
+        switch (answer.toLowerCase()) {
+            case "add":
+                addPrize(dbConn);
+                break;
+    
+            case "update":
+                updatePrizeInfo(dbConn);
+                break;
+    
+            case "delete":
+                deletePrize(dbConn);
+                break;
+    
+            default:
+                System.out.println("\nPlease choose a valid action (Add/Update/Delete)");
+        }
+    }
+
+    /*---------------------------------------------------------------------
+    |  Method deletePrize(Connection dbConn)
+    |
+    |  Purpose:  Allows the user to delete an existing prize entry from the
+    |            Prize table in the database. The method prompts the user to
+    |            input the prize ID, executes an SQL DELETE statement, and
+    |            prints a success message if the operation is successful.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: The specified prize entry is deleted from the Prize
+    |                  table in the database if the operation is successful.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
+    private static void deletePrize(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter the ID of the prize you want to delete:");
+        int prizeID = scanner.nextInt();
+
+        try (Statement statement = dbConn.createStatement()) {
+            String deleteQuery = "DELETE FROM Prize WHERE PrizeID = " + prizeID;
+            int rowsAffected = statement.executeUpdate(deleteQuery);
+            if (rowsAffected > 0) {
+                System.out.println("Prize with ID " + prizeID + " deleted successfully.");
+            } else {
+                System.out.println("No prize found with ID " + prizeID);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*---------------------------------------------------------------------
+    |  Method updatePrizeInfo(Connection dbConn)
+    |
+    |  Purpose:  Allows the user to update information for an existing prize
+    |            entry in the Prize table in the database. The method prompts
+    |            the user to input the prize ID and the new name and ticket
+    |            cost for the prize, executes an SQL UPDATE statement, and
+    |            prints a success message if the operation is successful.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: Information for the specified prize entry is updated
+    |                  in the Prize table in the database if the operation is
+    |                  successful.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
+    private static void updatePrizeInfo(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter the ID of the prize you want to update:");
+        int prizeID = scanner.nextInt();
+
+        System.out.println("Enter the new name for the prize:");
+        scanner.nextLine(); 
+        String newName = scanner.nextLine();
+
+        System.out.println("Enter the new ticket cost for the prize:");
+        int newTicketCost = scanner.nextInt();
+
+        try (Statement statement = dbConn.createStatement()) {
+            String updateQuery = "UPDATE Prize SET Name = '" + newName + "', TicketCost = " + newTicketCost + " WHERE PrizeID = " + prizeID;
+            int rowsAffected = statement.executeUpdate(updateQuery);
+            if (rowsAffected > 0) {
+                System.out.println("Prize with ID " + prizeID + " updated successfully.");
+            } else {
+                System.out.println("No prize found with ID " + prizeID);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*---------------------------------------------------------------------
+    |  Method addPrize(Connection dbConn)
+    |
+    |  Purpose:  Allows the user to add a new prize entry to the Prize table
+    |            in the database. The method prompts the user to input the
+    |            name and ticket cost for the new prize, executes an SQL INSERT
+    |            statement, and prints a success message if the operation is
+    |            successful.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: A new prize entry is added to the Prize table in the
+    |                  database if the operation is successful.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
+    private static void addPrize(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter the ID of the new prize:");
+        int newPrizeID = scanner.nextInt();
+    
+        System.out.println("Enter the name of the new prize:");
+        String newName = scanner.nextLine();
+    
+        System.out.println("Enter the ticket cost for the new prize:");
+        int newTicketCost = scanner.nextInt();
+    
+        try (PreparedStatement preparedStatement = dbConn.prepareStatement("INSERT INTO Prize (PrizeID, Name, TicketCost) VALUES (?, ?, ?)")) {
+            preparedStatement.setInt(1, newPrizeID);
+            preparedStatement.setString(2, newName);
+            preparedStatement.setInt(3, newTicketCost);
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("New prize added successfully.");
+            } else {
+                System.out.println("Failed to add new prize.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void updateGame(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("How would you like to update the Game table? (Add/Update/Delete)");
+        String answer = scanner.nextLine();
+    
+        switch (answer.toLowerCase()) {
+            case "add":
+                addGame(dbConn);
+                break;
+    
+            case "update":
+                updateGameInfo(dbConn);
+                break;
+    
+            case "delete":
+                deleteGame(dbConn);
+                break;
+    
+            default:
+                System.out.println("\nPlease choose a valid action (Add/Update/Delete)");
+        }
+    }
+
+    /*---------------------------------------------------------------------
+    |  Method deleteGame(Connection dbConn)
+    |
+    |  Purpose:  Allows the user to delete an existing game entry from the
+    |            Game table in the database. The method prompts the user to
+    |            input the game ID, executes an SQL DELETE statement, and
+    |            prints a success message if the operation is successful.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: The specified game entry is deleted from the Game
+    |                  table in the database if the operation is successful.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
+    private static void deleteGame(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the ID of the game you want to delete:");
+        int gameID = scanner.nextInt();
+        scanner.nextLine(); // Consume newline character
+
+        try (Statement statement = dbConn.createStatement()) {
+            String query = String.format("DELETE FROM Game WHERE GameID = %d", gameID);
+            int rowsAffected = statement.executeUpdate(query);
+            if (rowsAffected > 0) {
+                System.out.println("Game deleted successfully.");
+            } else {
+                System.out.println("Failed to delete game. Make sure the game ID is correct.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*---------------------------------------------------------------------
+    |  Method updateGameInfo(Connection dbConn)
+    |
+    |  Purpose:  Allows the user to update information for an existing game
+    |            entry in the Game table in the database. The method prompts
+    |            the user to input the game ID and the new name, token cost,
+    |            and tickets earned for the game, executes an SQL UPDATE
+    |            statement, and prints a success message if the operation
+    |            is successful.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: Information for the specified game entry is updated
+    |                  in the Game table in the database if the operation is
+    |                  successful.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
+    private static void updateGameInfo(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the ID of the game you want to update:");
+        int gameID = scanner.nextInt();
+        scanner.nextLine(); // Consume newline character
+
+        System.out.println("Enter the new name for the game:");
+        String name = scanner.nextLine();
+
+        System.out.println("Enter the new token cost for the game:");
+        int tokenCost = scanner.nextInt();
+        scanner.nextLine(); // Consume newline character
+
+        System.out.println("Enter the new number of tickets earned by playing the game:");
+        int tickets = scanner.nextInt();
+        scanner.nextLine(); // Consume newline character
+
+        try (Statement statement = dbConn.createStatement()) {
+            String query = String.format("UPDATE Game SET Name = '%s', TokenCost = %d, Tickets = %d WHERE GameID = %d", name, tokenCost, tickets, gameID);
+            int rowsAffected = statement.executeUpdate(query);
+            if (rowsAffected > 0) {
+                System.out.println("Game information updated successfully.");
+            } else {
+                System.out.println("Failed to update game information. Make sure the game ID is correct.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*---------------------------------------------------------------------
+    |  Method addGame(Connection dbConn)
+    |
+    |  Purpose:  Allows the user to add a new game entry to the Game table
+    |            in the database. The method prompts the user to input the
+    |            name, token cost, and tickets earned for the new game,
+    |            executes an SQL INSERT statement, and prints a success
+    |            message if the operation is successful.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: A new game entry is added to the Game table in the
+    |                  database if the operation is successful.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
+    private static void addGame(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the name of the new game:");
+        String name = scanner.nextLine();
+
+        System.out.println("Enter the token cost of the new game:");
+        int tokenCost = scanner.nextInt();
+        scanner.nextLine(); // Consume newline character
+
+        System.out.println("Enter the number of tickets earned by playing the new game:");
+        int tickets = scanner.nextInt();
+        scanner.nextLine(); // Consume newline character
+
+        try (Statement statement = dbConn.createStatement()) {
+            String query = String.format("INSERT INTO Game (Name, TokenCost, Tickets) VALUES ('%s', %d, %d)", name, tokenCost, tickets);
+            int rowsAffected = statement.executeUpdate(query);
+            if (rowsAffected > 0) {
+                System.out.println("New game added successfully.");
+            } else {
+                System.out.println("Failed to add new game.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -635,7 +1019,7 @@ public class Prog4 {
                                 "have spent at least $100 on tokens in the past month");
             System.out.println("(c) For a given member, list all arcade rewards that they can purchase " +  
                                 "with their tickets");
-            System.out.println("(d) Get the total number of tickets for a given gameID"); 
+            System.out.println("(d) Get total number of tickets for a given gameID"); 
             System.out.println("(e) Exit\n");
 
             // prompting input from user
@@ -700,7 +1084,7 @@ public class Prog4 {
             "AND Gameplay.Score = (SELECT MAX(Score) FROM Gameplay WHERE Gameplay.GameID = Game.GameID)";
             ResultSet rs = statement.executeQuery(query);
 
-            System.out.println("\n--------------------------------------------");
+            System.out.println("--------------------------------------------");
             while(rs.next()){
                 System.out.println("Game: " + rs.getString("Name") + " High Score: " + rs.getString("Fname") + " " + rs.getString("Lname"));
             }
@@ -844,6 +1228,39 @@ public class Prog4 {
         scanner.close();
     }
 
+    private static void printTableAttributes(Connection dbConn, String[] tablesToPrint) {
+        try {
+            DatabaseMetaData metaData = dbConn.getMetaData();
+    
+            // Iterate through specified tables
+            for (String tableName : tablesToPrint) {
+                ResultSet tables = metaData.getTables(null, null, tableName, null);
+    
+                // Check if table exists
+                if (!tables.next()) {
+                    System.out.println("\nTable: " + tableName);
+    
+                    // Get columns for the table
+                    ResultSet columns = metaData.getColumns(null, null, tableName, null);
+    
+                    // Iterate through columns
+                    while (columns.next()) {
+                        String columnName = columns.getString("COLUMN_NAME");
+                        String dataType = columns.getString("TYPE_NAME");
+                        int columnSize = columns.getInt("COLUMN_SIZE");
+                        System.out.println("  " + columnName + " " + dataType + "(" + columnSize + ")");
+                    }
+                    columns.close(); // Close columns ResultSet
+                } else {
+                    System.out.println("Table " + tableName + " does not exist.");
+                }
+                tables.close(); // Close tables ResultSet
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static void drop(Connection dbConn) {
         String[] tables = {"Transaction", "FoodCoupon", "Gameplay", "Member", "Prize", "Game", "MembershipTier"};
 
@@ -878,4 +1295,5 @@ public class Prog4 {
             System.exit(-1);
         }
     }
+
 }
