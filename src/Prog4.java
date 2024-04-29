@@ -576,7 +576,7 @@ public class Prog4 {
         System.out.println("Enter the new member's address:");
         String address = scanner.nextLine();
 
-        String query = 
+        // String query = 
     }
 
     private static void answerQueries(Connection dbConn) {
