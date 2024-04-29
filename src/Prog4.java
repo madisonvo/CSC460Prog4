@@ -513,8 +513,9 @@ public class Prog4 {
                     break;
 
                 case "n":
-                    scanner.close();
-                    break;
+                    //scanner.close();
+                    //break;
+                    return;
 
                 default:
                     System.out.println("\nPlease choose a valid answer (y/n)");
@@ -1146,7 +1147,7 @@ public class Prog4 {
             System.exit(-1);
         }
 
-        scanner.close();
+        //scanner.close();
     }
 
     /*---------------------------------------------------------------------
@@ -1194,7 +1195,7 @@ public class Prog4 {
             e.printStackTrace();
         }
 
-        scanner.close();
+        //scanner.close();
     }
 
     private static void printTableAttributes(Connection dbConn, String[] tablesToPrint) {
