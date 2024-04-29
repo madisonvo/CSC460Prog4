@@ -1413,7 +1413,7 @@ public class Prog4 {
             System.out.println("(e) Exit\n");
 
             // prompting input from user
-            System.out.println("Enter your query of choice (a, b, c, d, or e)");
+            System.out.println("Enter your query of choice (a, b, c, d, u or e)");
             String query = scanner.nextLine();
 
             switch (query.toLowerCase()) {
@@ -1514,7 +1514,7 @@ public class Prog4 {
                "MembershipTier, VisitCount, LastVisitDate, TotalTickets " +
                "FROM Member " +
                "WHERE TotalSpending >= 100.00 " +
-               "AND LastVisitDate >= TRUNC(SYSDATE) - INTERVAL '1' MONTH";
+               "AND LastVisitDate >= TRUNC(SYSDATE - 30)";
 
 
             ResultSet resultSet = statement.executeQuery(query);
