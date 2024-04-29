@@ -120,7 +120,7 @@ public class Prog4 {
         "GameID INT, " +
         "Score INT, " +
         "TicketsEarned INT, " +
-        "Date DATE, " +
+        "\"Date\" DATE, " +
         "FOREIGN KEY (MemberID) REFERENCES Member(MemberID), " +
         "FOREIGN KEY (GameID) REFERENCES Game(GameID)" +
         ")";
@@ -135,7 +135,7 @@ public class Prog4 {
         "FoodCouponID INT PRIMARY KEY, " +
         "MemberID INT, " +
         "RedeemedFood VARCHAR(100), " +
-        "Used BOOLEAN, " +
+        "Used NUMBER(1), " +
         "FOREIGN KEY (MemberID) REFERENCES Member(MemberID)" +
         ")";
 
@@ -151,7 +151,7 @@ public class Prog4 {
         "TransactionID INT PRIMARY KEY, " +
         "Type VARCHAR(50), " +
         "Amount DECIMAL(10, 2), " +
-        "Date DATE" +
+        "\"Date\" DATE" +
         ")";
 
         String[] tableNames = {"Member", "Game", "Gameplay", "Prize", "FoodCoupon", "MembershipTier", "Transaction"};
@@ -160,7 +160,7 @@ public class Prog4 {
         try (Statement statement = dbConn.createStatement()) {
             // Check if tables already exist
             for (int i = 0; i < tableNames.length; i++) {
-                if (!tableExists(dbConn, tableNames[i])) {
+                if (tableExists(dbConn, tableNames[i])) {
                     System.out.println("Table " + tableNames[i] + " already exists.");
                 } else {
                     statement.execute(createTableQueries[i]);
