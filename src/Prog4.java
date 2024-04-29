@@ -1165,15 +1165,22 @@ public class Prog4 {
 
         System.out.println("Enter the ID of the game you want to delete:");
         int gameID = scanner.nextInt();
-        scanner.nextLine(); // Consume newline character
+        scanner.nextLine(); 
 
         try (Statement statement = dbConn.createStatement()) {
-            String query = String.format("DELETE FROM Game WHERE GameID = %d", gameID);
-            int rowsAffected = statement.executeUpdate(query);
-            if (rowsAffected > 0) {
-                System.out.println("Game deleted successfully.");
+            // delete gameplay records associated with the game
+            String deleteGameplayQuery = "DELETE FROM Gameplay WHERE GameID = " + gameID;
+            int gameplayDeleted = statement.executeUpdate(deleteGameplayQuery);
+
+            //  delete the game entry itself
+            String deleteGameQuery = "DELETE FROM Game WHERE GameID = " + gameID;
+            int gameDeleted = statement.executeUpdate(deleteGameQuery);
+
+            if (gameDeleted > 0) {
+                System.out.println("Game with ID " + gameID + " deleted successfully.");
+                System.out.println("Related gameplay records deleted: " + gameplayDeleted);
             } else {
-                System.out.println("Failed to delete game. Make sure the game ID is correct.");
+                System.out.println("No game found with ID " + gameID);
             }
         } catch (SQLException e) {
             e.printStackTrace();
