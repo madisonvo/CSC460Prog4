@@ -447,9 +447,7 @@ public class Prog4 {
                                 "have spent at least $100 on tokens in the past month");
             System.out.println("(c) For a given member, list all arcade rewards that they can purchase " +  
                                 "with their tickets");
-            // TODO: Create a non-trivial query of our own design
-            // TODO: Must be constructed using at least on piece of information gathered from user
-            System.out.println("(d) N/A"); 
+            System.out.println("(d) Get total number of tickets for a given gameID"); 
             System.out.println("(e) Exit\n");
 
             // prompting input from user
