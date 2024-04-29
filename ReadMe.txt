@@ -14,4 +14,7 @@ Madison Vo
 Tariq Wilson
     * createTables() function
     * queryA() function
-    * queryB() functions
+    * queryB() function
+    * queryD() function
+    * ER-Diagram
+    * Presentation
