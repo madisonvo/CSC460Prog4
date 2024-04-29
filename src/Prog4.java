@@ -1595,8 +1595,7 @@ public class Prog4 {
             String query = "SELECT MemberID, Fname, Lname, TelephoneNum, Address, GameTokens, TotalSpending, " +
                "MembershipTier, VisitCount, LastVisitDate, TotalTickets " +
                "FROM Member " +
-               "WHERE TotalSpending >= 100.00 " +
-               "AND LastVisitDate >= TRUNC(SYSDATE - 30)";
+               "WHERE TotalSpending >= 100.00 ";
 
 
             ResultSet resultSet = statement.executeQuery(query);
