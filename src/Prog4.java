@@ -108,6 +108,7 @@ public class Prog4 {
             System.err.println("Usage: java JDBC <username> <password>");
             System.exit(-1);
         }
+        
         if (createTables(dbConn)) {
             System.out.println("Tables created successfully.");
             importMemberData(dbConn, "Member.csv");
@@ -275,7 +276,6 @@ public class Prog4 {
             }
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -1481,6 +1481,7 @@ public class Prog4 {
             "AND Gameplay.Score = (SELECT MAX(Score) FROM Gameplay WHERE Gameplay.GameID = Game.GameID)";
             ResultSet rs = statement.executeQuery(query);
 
+            System.out.println("\nGames in arcade and current high scores:");
             System.out.println("--------------------------------------------");
             while(rs.next()){
                 System.out.println("Game: " + rs.getString("Name") + " High Score: " + rs.getString("Fname") + " " + rs.getString("Lname"));
@@ -1510,11 +1511,11 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static void queryB(Connection dbConn) {
         try (Statement statement = dbConn.createStatement()) {
-            String query = "SELECT * FROM Member WHERE TotalSpending >= 100 AND LastVisitDate >= SYSDATE - 30";
+            String query = "SELECT * FROM Member WHERE TotalSpending >= 100 AND LastVisitDate >= (SELECT SYSDATE - 30 FROM DUAL)";
 
             ResultSet resultSet = statement.executeQuery(query);
 
-            System.out.println("Results: ");
+            System.out.println("\nNames and membership information of all members who have spent at least $100 on tokens in the past month:");
             System.out.println("------------------------------------------------------------");
             while (resultSet.next()) {
                 int memberID = resultSet.getInt("MemberID");
@@ -1524,7 +1525,7 @@ public class Prog4 {
                 String address = resultSet.getString("Address");
                 int gameTokens = resultSet.getInt("GameTokens");
                 double totalSpending = resultSet.getDouble("TotalSpending");
-                int membershipTier = resultSet.getInt("MembershipTier");
+                String membershipTier = resultSet.getString("MembershipTier");
                 int visitCount = resultSet.getInt("VisitCount");
                 String lastVisitDate = resultSet.getString("LastVisitDate");
                 int totalTickets = resultSet.getInt("TotalTickets");
@@ -1571,11 +1572,11 @@ public class Prog4 {
         try {
             Statement statement = dbConn.createStatement();
 
-            String query = "SELECT Prize.Name, Prize.TicketCost WHERE Prize.TicketCost <= " + 
-                            "(SELECT SUM(Gameplay.TicketsEarned) WHERE Gameplay.MemberID = " + memberId + ")";
+            String query = "SELECT Prize.Name, Prize.TicketCost FROM Prize WHERE Prize.TicketCost <= " + 
+                            "(SELECT Member.TotalTickets FROM Member WHERE Member.MemberID = " + memberId + ")";
 
             ResultSet tables = statement.executeQuery(query);
-            System.out.println("Available rewards for member ID " + memberId + ":");
+            System.out.println("\nAvailable rewards for member ID " + memberId + ":");
             System.out.println("-----------------------------------------------");
             while (tables.next()) {
                 String prizeName = tables.getString("Name");
@@ -1589,8 +1590,6 @@ public class Prog4 {
             e.printStackTrace();
             System.exit(-1);
         }
-
-        //scanner.close();
     }
 
     /*---------------------------------------------------------------------
@@ -1624,7 +1623,7 @@ public class Prog4 {
 
             ResultSet resultSet = statement.executeQuery(query);
 
-            System.out.println("Total tickets earned by each member for Game ID " + gameId + ":");
+            System.out.println("\nTotal tickets earned by each member for Game ID " + gameId + ":");
             System.out.println("-----------------------------------------------");
             while (resultSet.next()) {
                 int memberId = resultSet.getInt("MemberID");
