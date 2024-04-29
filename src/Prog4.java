@@ -1510,12 +1510,17 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static void queryB(Connection dbConn) {
         try (Statement statement = dbConn.createStatement()) {
-            String query = "SELECT * FROM Member WHERE TotalSpending >= 100 AND LastVisitDate >= SYSDATE - 30";
+            String query = "SELECT MemberID, Fname, Lname, TelephoneNum, Address, GameTokens, TotalSpending, " +
+               "MembershipTier, VisitCount, LastVisitDate, TotalTickets " +
+               "FROM Member " +
+               "WHERE TotalSpending >= 100.00 " +
+               "AND LastVisitDate >= TRUNC(SYSDATE) - INTERVAL '1' MONTH";
+
 
             ResultSet resultSet = statement.executeQuery(query);
 
             System.out.println("Results: ");
-            System.out.println("------------------------------------------------------------");
+            System.out.println("----------------------------------------------------");
             while (resultSet.next()) {
                 int memberID = resultSet.getInt("MemberID");
                 String firstName = resultSet.getString("Fname");
@@ -1541,6 +1546,8 @@ public class Prog4 {
                 System.out.println("Total Tickets: " + totalTickets);
                 System.out.println("--------------------------------------------");
             }
+            System.out.println("--------------------------------------------");
+            
         }catch (SQLException e) {
             e.printStackTrace();
         }
