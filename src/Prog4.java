@@ -1197,6 +1197,7 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void addGame(Connection dbConn) {
+        int newGameID = getLastGameID(dbConn) + 1;
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Enter the name of the new game:");
@@ -1204,14 +1205,13 @@ public class Prog4 {
 
         System.out.println("Enter the token cost of the new game:");
         int tokenCost = scanner.nextInt();
-        scanner.nextLine(); // Consume newline character
+        scanner.nextLine(); 
 
         System.out.println("Enter the number of tickets earned by playing the new game:");
         int tickets = scanner.nextInt();
-        scanner.nextLine(); // Consume newline character
-
+        scanner.nextLine(); 
         try (Statement statement = dbConn.createStatement()) {
-            String query = String.format("INSERT INTO Game (Name, TokenCost, Tickets) VALUES ('%s', %d, %d)", name, tokenCost, tickets);
+            String query = String.format("INSERT INTO Game (GameID, Name, TokenCost, Tickets) VALUES (%d, '%s', %d, %d)", newGameID, name, tokenCost, tickets);
             int rowsAffected = statement.executeUpdate(query);
             if (rowsAffected > 0) {
                 System.out.println("New game added successfully.");
@@ -1314,9 +1314,8 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void addPrize(Connection dbConn) {
+        int newPrizeID = getLastPrizeID(dbConn) + 1;
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter the ID of the new prize:");
-        int newPrizeID = scanner.nextInt();
     
         System.out.println("Enter the name of the new prize:");
         String newName = scanner.nextLine();
@@ -1372,6 +1371,88 @@ public class Prog4 {
             }
         } catch (SQLException e) {
             System.err.println("Couldn't get last member ID.");
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /*---------------------------------------------------------------------
+    |  Method getLastGameID(Connection dbConn)
+    |
+    |  Purpose:  Retrieves the maximum GameID from the Game table in the
+    |            database, allowing the insertion of a new game with an
+    |            incremented ID. Returns the last GameID value if it exists
+    |            or 0 if no game records are found in the database.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: Returns the last GameID value from the Game table
+    |                  or 0 if no records are found.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  The last GameID value from the Game table or 0 if no records
+    |            are found.
+    *-------------------------------------------------------------------*/
+    private static int getLastGameID(Connection dbConn) {
+        try {
+            Statement statement = dbConn.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT MAX(GameID) AS LastGameID FROM Game");
+    
+            if (resultSet.next()) {
+                int maxGameID = resultSet.getInt("LastGameID");
+                resultSet.close();
+                statement.close();
+                return maxGameID;
+            } else {
+                resultSet.close();
+                statement.close();
+                return 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Couldn't get last game ID.");
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /*---------------------------------------------------------------------
+    |  Method getLastPrizeID(Connection dbConn)
+    |
+    |  Purpose:  Retrieves the maximum PrizeID from the Prize table in the
+    |            database, allowing the insertion of a new prize with an
+    |            incremented ID. Returns the last PrizeID value if it exists
+    |            or 0 if no prize records are found in the database.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: Returns the last PrizeID value from the Prize table
+    |                  or 0 if no records are found.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  The last PrizeID value from the Prize table or 0 if no records
+    |            are found.
+    *-------------------------------------------------------------------*/
+    private static int getLastPrizeID(Connection dbConn) {
+        try {
+            Statement statement = dbConn.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT MAX(PrizeID) AS LastPrizeID FROM Prize");
+    
+            if (resultSet.next()) {
+                int maxPrizeID = resultSet.getInt("LastPrizeID");
+                resultSet.close();
+                statement.close();
+                return maxPrizeID;
+            } else {
+                resultSet.close();
+                statement.close();
+                return 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Couldn't get last prize ID.");
             e.printStackTrace();
             return 0;
         }
