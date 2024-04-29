@@ -610,8 +610,53 @@ public class Prog4 {
         scanner.close();
     }
 
-    // TODO: Implement logic to answer query d
-    private static void queryD(Connection dbConn) {}
+    /*---------------------------------------------------------------------
+    | Method queryD(connection)
+    |
+    | Purpose: Retrieves the total number of tickets earned by each member
+    | for a specific game.
+    | The method prompts the user to input the Game ID, then constructs
+    | and executes an SQL query to fetch this information from the database
+    | and prints the results.
+    |
+    | Pre-condition: Connection to the database is established.
+    |
+    | Post-condition: Total tickets earned by each member for the specified game
+    | are displayed.
+    |
+    | Parameters:
+    | connection -- Connection object representing the database connection.
+    |
+    | Returns: None.
+    *-------------------------------------------------------------------*/
+    private static void queryD(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter Game ID:");
+        int gameId = scanner.nextInt();
+
+        try {
+            Statement statement = dbConn.createStatement();
+
+            String query = "SELECT MemberID, SUM(TicketsEarned) AS TotalTicketsEarned FROM Gameplay WHERE GameID = " + gameId + " GROUP BY MemberID";
+
+            ResultSet resultSet = statement.executeQuery(query);
+
+            System.out.println("Total tickets earned by each member for Game ID " + gameId + ":");
+            System.out.println("-----------------------------------------------");
+            while (resultSet.next()) {
+                int memberId = resultSet.getInt("MemberID");
+                int totalTicketsEarned = resultSet.getInt("TotalTicketsEarned");
+
+                System.out.println("Member ID: " + memberId + ", Total Tickets Earned: " + totalTicketsEarned);
+            }
+            System.out.println("-----------------------------------------------");
+        } catch (SQLException e) {
+            System.err.println("Error in executing query d.");
+            e.printStackTrace();
+        }
+
+        scanner.close();
+    }
 
     private static void printTableAttributes(Connection dbConn, String[] tablesToPrint) {
         try {
