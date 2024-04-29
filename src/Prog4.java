@@ -1533,7 +1533,7 @@ public class Prog4 {
 
                 // invalid input
                 default:
-                    System.out.println("\nPlease choose a valid query (a, b, c, d, or e)");
+                    System.out.println("\nPlease choose a valid query (a, b, c, d, u or e)");
             }
         }
     }
