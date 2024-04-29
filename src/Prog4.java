@@ -17,18 +17,21 @@ public class Prog4 {
             System.err.println("Usage: java JDBC <username> <password>");
             System.exit(-1);
         }
-        // drop(dbConn);
-
-        createTables(dbConn);
-
-        importMemberData(dbConn, "Member.csv");
-        importGameData(dbConn, "Game.csv");
-        importGameplayData(dbConn, "Gameplay.csv");
-        importPrizeData(dbConn, "Prize.csv");
-        importFoodCouponData(dbConn, "FoodCoupon.csv");
-        importMembershipTierData(dbConn, "MembershipTier.csv");
-        importTransactionData(dbConn, "Transaction.csv");
-
+        if (createTables(dbConn)) {
+            System.out.println("Tables created successfully.");
+            importMemberData(dbConn, "Member.csv");
+            importGameData(dbConn, "Game.csv");
+            importGameplayData(dbConn, "Gameplay.csv");
+            importPrizeData(dbConn, "Prize.csv");
+            importFoodCouponData(dbConn, "FoodCoupon.csv");
+            importMembershipTierData(dbConn, "MembershipTier.csv");
+            importTransactionData(dbConn, "Transaction.csv");
+            System.out.println("Data imported successfully.");
+        } else {
+            System.out.println("Tables already exist. Skipping table creation and data import.");
+        }
+        //String[] tableNames = {"Member", "Game", "Gameplay", "Prize", "FoodCoupon", "MembershipTier", "Transaction"};
+        //printTableAttributes(dbConn, tableNames);
         promptUpdate(dbConn);
 
         answerQueries(dbConn);
@@ -211,7 +214,7 @@ public class Prog4 {
     private static void importMemberData(Connection dbConn, String file) {
         String tableName = "Member";
 
-        System.out.println("\nInserting into " + tableName);
+        System.out.println(tableName);
 
         try {
             String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?)";
@@ -220,6 +223,9 @@ public class Prog4 {
             String line = null;
             while ((line = reader.readLine()) != null) {
                 String[] data = line.split(",");
+                for (int i = 0; i < data.length; i ++) {
+                    System.out.println(data[i]);
+                }
                 if (!rowExists(dbConn, tableName, data[0])) {
                     statement.setInt(1, Integer.valueOf(data[0]));
                     statement.setString(2, data[1]);
@@ -252,7 +258,7 @@ public class Prog4 {
     private static void importGameData(Connection dbConn, String file) {
         String tableName = "Game";
 
-        System.out.println("\nInserting into " + tableName);
+        System.out.println(tableName);
 
         try {
             String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?)";
@@ -285,7 +291,7 @@ public class Prog4 {
     private static void importGameplayData(Connection dbConn, String file) {
         String tableName = "Gameplay";
 
-        System.out.println("\nInserting into " + tableName);
+        System.out.println(tableName);
 
         try {
             String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'))";
@@ -296,10 +302,15 @@ public class Prog4 {
                 String[] data = line.split(",");
                 if (!rowExists(dbConn, tableName, data[0])) {
                     statement.setInt(1, Integer.valueOf(data[0]));
+                    System.out.println(1 + " successful");
                     statement.setInt(2, Integer.valueOf(data[1]));
+                    System.out.println(2 + " successful");
                     statement.setInt(3, Integer.valueOf(data[2]));
+                    System.out.println(3 + " successful");
                     statement.setInt(4, Integer.valueOf(data[3]));
+                    System.out.println(4 + " successful");
                     statement.setInt(5, Integer.valueOf(data[4]));
+                    System.out.println(5 + " successful");
                     statement.setString(6, data[5]);
 
                     statement.executeUpdate();
@@ -365,7 +376,7 @@ public class Prog4 {
                     statement.setInt(1, Integer.valueOf(data[0]));
                     statement.setInt(2, Integer.valueOf(data[1]));
                     statement.setString(3, data[2]);
-                    statement.setInt(4, Integer.valueOf(data[3]));
+                    statement.setBoolean(4, Boolean.valueOf(data[3]));
 
                     statement.executeUpdate();
                 } else {
@@ -839,6 +850,39 @@ public class Prog4 {
         scanner.close();
     }
 
+    private static void printTableAttributes(Connection dbConn, String[] tablesToPrint) {
+        try {
+            DatabaseMetaData metaData = dbConn.getMetaData();
+    
+            // Iterate through specified tables
+            for (String tableName : tablesToPrint) {
+                ResultSet tables = metaData.getTables(null, null, tableName, null);
+    
+                // Check if table exists
+                if (!tables.next()) {
+                    System.out.println("\nTable: " + tableName);
+    
+                    // Get columns for the table
+                    ResultSet columns = metaData.getColumns(null, null, tableName, null);
+    
+                    // Iterate through columns
+                    while (columns.next()) {
+                        String columnName = columns.getString("COLUMN_NAME");
+                        String dataType = columns.getString("TYPE_NAME");
+                        int columnSize = columns.getInt("COLUMN_SIZE");
+                        System.out.println("  " + columnName + " " + dataType + "(" + columnSize + ")");
+                    }
+                    columns.close(); // Close columns ResultSet
+                } else {
+                    System.out.println("Table " + tableName + " does not exist.");
+                }
+                tables.close(); // Close tables ResultSet
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static void drop(Connection dbConn) {
         String one = "DROP TABLE Member";
         String two = "DROP TABLE Game";
@@ -861,4 +905,5 @@ public class Prog4 {
 
         }
     }
+
 }
