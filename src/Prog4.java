@@ -5,6 +5,7 @@ import java.io.*;
 public class Prog4 {
 
     static int currMemberID = 10;
+
     public static void main(String[] args) {
         Connection dbConn = null;
         // if there are a correct amount of command line arguments
@@ -16,7 +17,6 @@ public class Prog4 {
             System.err.println("Usage: java JDBC <username> <password>");
             System.exit(-1);
         }
-
         // drop(dbConn);
 
         createTables(dbConn);
@@ -28,9 +28,7 @@ public class Prog4 {
         importFoodCouponData(dbConn, "FoodCoupon.csv");
         importMembershipTierData(dbConn, "MembershipTier.csv");
         importTransactionData(dbConn, "Transaction.csv");
-
         promptUpdate(dbConn);
-
         answerQueries(dbConn);
     }
 
@@ -165,6 +163,7 @@ public class Prog4 {
             for (int i = 0; i < tableNames.length; i++) {
                 if (tableExists(dbConn, tableNames[i])) {
                     System.out.println("Table " + tableNames[i] + " already exists.");
+                    return false;
                 } else {
                     statement.execute(createTableQueries[i]);
                     System.out.println("Table " + tableNames[i] + " created successfully.");
@@ -476,6 +475,7 @@ public class Prog4 {
      */
     private static boolean rowExists(Connection dbConn, String tableName, String id) throws SQLException {
         String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + tableName + "ID = ?"; /* query to check for given id */
+        System.out.println(id);
         // try catch for checking for row in table
         try (PreparedStatement statement = dbConn.prepareStatement(query)) {
             // setting facility id to facility attribute index
@@ -582,13 +582,11 @@ public class Prog4 {
                                 "have spent at least $100 on tokens in the past month");
             System.out.println("(c) For a given member, list all arcade rewards that they can purchase " +  
                                 "with their tickets");
-            // TODO: Create a non-trivial query of our own design
-            // TODO: Must be constructed using at least on piece of information gathered from user
-            System.out.println("(d) N/A"); 
+            System.out.println("(d) Get total number of tickets for a given gameID"); 
             System.out.println("(e) Exit\n");
 
             // prompting input from user
-            System.out.println("Enter your query of choice (a/b/c/d/e)");
+            System.out.println("Enter your query of choice (a, b, c, d, or e)");
             String query = scanner.nextLine();
 
             switch (query.toLowerCase()) {
@@ -620,7 +618,7 @@ public class Prog4 {
 
                 // invalid input
                 default:
-                    System.out.println("\nPlease choose a valid query (a/b/c/d/e)");
+                    System.out.println("\nPlease choose a valid query (a, b, c, d, or e)");
             }
         }
     }
@@ -745,8 +743,53 @@ public class Prog4 {
         scanner.close();
     }
 
-    // TODO: Implement logic to answer query d
-    private static void queryD(Connection dbConn) {}
+    /*---------------------------------------------------------------------
+    | Method queryD(connection)
+    |
+    | Purpose: Retrieves the total number of tickets earned by each member
+    | for a specific game.
+    | The method prompts the user to input the Game ID, then constructs
+    | and executes an SQL query to fetch this information from the database
+    | and prints the results.
+    |
+    | Pre-condition: Connection to the database is established.
+    |
+    | Post-condition: Total tickets earned by each member for the specified game
+    | are displayed.
+    |
+    | Parameters:
+    | connection -- Connection object representing the database connection.
+    |
+    | Returns: None.
+    *-------------------------------------------------------------------*/
+    private static void queryD(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter Game ID:");
+        int gameId = scanner.nextInt();
+
+        try {
+            Statement statement = dbConn.createStatement();
+
+            String query = "SELECT MemberID, SUM(TicketsEarned) AS TotalTicketsEarned FROM Gameplay WHERE GameID = " + gameId + " GROUP BY MemberID";
+
+            ResultSet resultSet = statement.executeQuery(query);
+
+            System.out.println("Total tickets earned by each member for Game ID " + gameId + ":");
+            System.out.println("-----------------------------------------------");
+            while (resultSet.next()) {
+                int memberId = resultSet.getInt("MemberID");
+                int totalTicketsEarned = resultSet.getInt("TotalTicketsEarned");
+
+                System.out.println("Member ID: " + memberId + ", Total Tickets Earned: " + totalTicketsEarned);
+            }
+            System.out.println("-----------------------------------------------");
+        } catch (SQLException e) {
+            System.err.println("Error in executing query d.");
+            e.printStackTrace();
+        }
+
+        scanner.close();
+    }
 
     private static void drop(Connection dbConn) {
         String one = "DROP TABLE Member";
