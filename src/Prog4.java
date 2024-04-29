@@ -2,6 +2,99 @@ import java.sql.*;
 import java.util.*;
 import java.io.*;
 
+/**
+* Author: Tariq Wilson & Madison Vo
+* Purpose: This Program implements a two-tier client-server architecture.
+*          It runs the Oracle DBMS on aloe.cs.arizona.edu. It creates and populates
+*          tables as well as has a client user interface that handles the functionality
+*          required by the client. Our application supports record insertion,
+*          deletion, updates, and queries.
+* Course: CSC 460
+* Instructor: Lester McCann
+* TA: Ahmad Musa, Jake Bode, Priyansh Nayak
+* Assignment: Prog4.java
+*
+*/
+
+/*---------------------------------------------------------------------
+|  Class Prog4
+|
+|  Purpose:  This class represents a program for managing data related to
+|            an event management system. It provides functionalities for
+|            creating tables, importing data from CSV files into the database,
+|            updating tables, and executing custom queries. Users can interact
+|            with the program via a menu system.
+|
+|  Pre-condition:  The Oracle JDBC driver is available. The database
+|                  connection parameters (URL, username, password) are
+|                  correctly configured. CSV files containing data are
+|                  available in the local directory.
+|
+|  Post-condition: The program provides options for users to perform
+|                  various data management tasks. Database tables may be
+|                  created if they do not exist, and data may be imported
+|                  from CSV files into the database. Users can update tables
+|                  and execute custom queries.
+|
+|  Constructors:   None.
+|
+|  Methods:        - main(String[] args): The main method of the program
+|                    that establishes a connection to the database, creates
+|                    tables if necessary, imports data, displays a menu, and
+|                    allows users to choose from different functionalities.
+|                 - getConnection(String[] args): Method to establish a database
+|                    connection using the provided username and password.
+|                 - createTables(Connection dbConn): Method to create tables in
+|                    the database to store data for each entity if they do not
+|                    already exist.
+|                 - importMemberData(Connection dbConn, String file): Method to
+|                    import member data from a CSV file into the Member table
+|                    in the database.
+|                 - importGameData(Connection dbConn, String file): Method to import
+|                    game data from a CSV file into the Game table in the database.
+|                 - importGameplayData(Connection dbConn, String file): Method to
+|                    import gameplay data from a CSV file into the Gameplay table
+|                    in the database.
+|                 - importPrizeData(Connection dbConn, String file): Method to import
+|                    prize data from a CSV file into the Prize table in the database.
+|                 - importFoodCouponData(Connection dbConn, String file): Method to
+|                    import food coupon data from a CSV file into the FoodCoupon table
+|                    in the database.
+|                 - importMembershipTierData(Connection dbConn, String file): Method
+|                    to import membership tier data from a CSV file into the MembershipTier
+|                    table in the database.
+|                 - importTransactionData(Connection dbConn, String file): Method to import
+|                    transaction data from a CSV file into the Transaction table in the database.
+|                 - tableExists(Connection dbConn, String tableName): Method to check if
+|                    a table exists in the database.
+|                 - rowExists(Connection dbConn, String tableName, String id): Method to check
+|                    if a row with the given ID exists in the specified table.
+|                 - promptUpdate(Connection dbConn): Method to prompt the user if they want to
+|                    update the tables and execute the update method accordingly.
+|                 - update(Connection dbConn): Method to prompt the user for the table they want
+|                    to update and call the corresponding update method.
+|                 - updateMember(Connection dbConn): Method to prompt the user for the type of
+|                    update they want to perform on the Member table and call the corresponding
+|                    method (addMember, editMember, deleteMember).
+|                 - addMember(Connection dbConn): Method to add a new member to the Member table
+|                    in the database.
+|                 - editMember(Connection dbConn): Method to edit an existing member in the Member
+|                    table in the database.
+|                 - deleteMember(Connection dbConn): Method to delete a member from the Member table
+|                    in the database.
+|                 - addGame(Connection dbConn): Method to add a new game to the Game table
+|                    in the database.
+|                 - deleteGame(Connection dbConn): Method to delete a game from the Game table
+|                    in the database.
+|                 - addPrize(Connection dbConn): Method to add a new prize to the Prize table
+|                    in the database.
+|                 - deletePrize(Connection dbConn): Method to delete a prize from the Prize table
+|                    in the database.
+|
+|  Constants:      None.
+|
+|  Returns:        None.
+*-------------------------------------------------------------------*/
 public class Prog4 {
 
     public static void main(String[] args) throws SQLException {
@@ -34,17 +127,26 @@ public class Prog4 {
         answerQueries(dbConn);
     }
 
-    /*
-     * Function: getConnection
-     * Parameters: String[] args - The array of Strings containing the command line arguments.
-     * Returns: dbConn - The JDBC database connection.
-     * 
-     * Pre-condition: The args parameter contains the username in index 0 and the password in index 1.
-     * 
-     * Post-condition: TODO
-     * 
-     * Purpose: TODO
-     */
+    /*---------------------------------------------------------------------
+    |  Function: getConnection
+    |
+    |  Purpose:  Establishes a connection to the database using the provided
+    |            username and password. If successful, it returns the
+    |            Connection object representing the database connection.
+    |
+    |  Pre-condition:  The Oracle JDBC driver is available. The database
+    |                  connection parameters (URL, username, password) are
+    |                  correctly configured.
+    |
+    |  Post-condition: A valid database connection is established.
+    |
+    |  Parameters:
+    |      args - An array of Strings containing the username and password
+    |             for database authentication.
+    |
+    |  Returns:  Connection - A Connection object representing the database
+    |                        connection if successful, null otherwise.
+    *-------------------------------------------------------------------*/
     private static Connection getConnection(String[] args) {
         final String oracleURL = "jdbc:oracle:thin:@aloe.cs.arizona.edu:1521:oracle"; /* lectura -> aloe access spell */
         String username = args[0]; /* username to access database from command line argument */
@@ -178,20 +280,21 @@ public class Prog4 {
         }
     }
 
-        /*
-     * Function: tableExists
-     * Parameters: Connection dbConn - The JDBC database connection.
-     *             String tableName - The name of the table we want to check if it exists.
-     * Returns: true - table doesn't exist.
-     *          false - table exists.
-     * 
-     * Pre-condition: The JDBC database connection is valid.
-     * 
-     * Post-condition: True or false will be returned.
-     * 
-     * Purpose: This function is responsible for checking to see if the given tableName exists within
-     *          the given JDBC database connection, returning true if it doesn't, false otherwise.
-     */
+    /*---------------------------------------------------------------------
+    |  Method tableExists(connection, tableName)
+    |
+    |  Purpose:  Checks if a given table exists in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid.
+    |
+    |  Post-condition: Returns true if the table exists, false otherwise.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      tableName -- Name of the table to check existence.
+    |
+    |  Returns:  boolean -- True if the table exists, false otherwise.
+    *-------------------------------------------------------------------*/
     private static boolean tableExists(Connection dbConn, String tableName) {
         // try catch for checking to see if given table name exists
         try {
@@ -208,6 +311,27 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method importMemberData(connection, file)
+    |
+    |  Purpose:  Imports member data from a CSV file into the Member table
+    |            in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Member data is inserted into the Member table if it
+    |                  does not already exist.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      file -- Name of the CSV file containing member data.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void importMemberData(Connection dbConn, String file) {
         String tableName = "Member";
 
@@ -263,6 +387,27 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method importGameData(connection, file)
+    |
+    |  Purpose:  Imports game data from a CSV file into the Game table
+    |            in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Game data is inserted into the Game table if it
+    |                  does not already exist.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      file -- Name of the CSV file containing game data.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void importGameData(Connection dbConn, String file) {
         String tableName = "Game";
 
@@ -296,6 +441,27 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method importGameplayData(connection, file)
+    |
+    |  Purpose:  Imports gameplay data from a CSV file into the Gameplay table
+    |            in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Gameplay data is inserted into the Gameplay table if it
+    |                  does not already exist.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      file -- Name of the CSV file containing gameplay data.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void importGameplayData(Connection dbConn, String file) {
         String tableName = "Gameplay";
 
@@ -336,6 +502,27 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method importPrizeData(connection, file)
+    |
+    |  Purpose:  Imports prize data from a CSV file into the Prize table
+    |            in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Prize data is inserted into the Prize table if it
+    |                  does not already exist.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      file -- Name of the CSV file containing prize data.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void importPrizeData(Connection dbConn, String file) {
         String tableName = "Prize";
 
@@ -367,7 +554,28 @@ public class Prog4 {
             e.printStackTrace();
         }
     }
-
+    
+    /*---------------------------------------------------------------------
+    |  Method importFoodCouponData(connection, file)
+    |
+    |  Purpose:  Imports food coupon data from a CSV file into the FoodCoupon table
+    |            in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Food coupon data is inserted into the FoodCoupon table if it
+    |                  does not already exist.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      file -- Name of the CSV file containing food coupon data.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void importFoodCouponData(Connection dbConn, String file) {
         String tableName = "FoodCoupon";
 
@@ -401,6 +609,27 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method importMembershipTierData(connection, file)
+    |
+    |  Purpose:  Imports membership tier data from a CSV file into the MembershipTier table
+    |            in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Membership tier data is inserted into the MembershipTier table if it
+    |                  does not already exist.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      file -- Name of the CSV file containing membership tier data.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void importMembershipTierData(Connection dbConn, String file) {
         String tableName = "MembershipTier";
 
@@ -435,6 +664,27 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method importTransactionData(connection, file)
+    |
+    |  Purpose:  Imports transaction data from a CSV file into the Transaction table
+    |            in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Transaction data is inserted into the Transaction table if it
+    |                  does not already exist.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      file -- Name of the CSV file containing transaction data.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void importTransactionData(Connection dbConn, String file) {
         String tableName = "Transaction";
 
@@ -468,21 +718,27 @@ public class Prog4 {
         }
     }
 
-    /*
-     * Function: rowExists
-     * Parameters: Connection dbConn - The JDBC database connection.
-     *             String tableName - The name of the table we want to check if a given row exists in.
-     *             String facilityId - The facility id we want to check exists in the given table name.
-     * Returns: true if the row exists
-     *          false if the row doesn't exist
-     * 
-     * Pre-condition: The JDBC database connection, table, and facility id are valid.
-     * 
-     * Post-condition: Returns true or false.
-     * 
-     * Purpose: This function is responsible for checking to see if a row (given a facility id) exists
-     *          within the given table name in the given JDBC database connection.
-     */
+    /*---------------------------------------------------------------------
+    |  Method rowExists(connection, tableName, id)
+    |
+    |  Purpose:  Checks whether a row with the given ID exists in the specified
+    |            table of the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Returns true if the row exists; otherwise, false.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      tableName -- Name of the table to search for the row.
+    |      id -- The ID of the row to check for existence.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  boolean -- True if the row exists; otherwise, false.
+    *-------------------------------------------------------------------*/
     private static boolean rowExists(Connection dbConn, String tableName, String id) throws SQLException {
         String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + tableName + "ID = ?"; /* query to check for given id */
         System.out.println(id);
@@ -500,6 +756,24 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method promptUpdate(connection)
+    |
+    |  Purpose:  Prompts the user to decide whether to update the database tables.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Allows the user to choose whether to update the tables.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void promptUpdate(Connection dbConn) throws SQLException {
         Scanner scanner = new Scanner(System.in);
 
@@ -523,6 +797,25 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method update(connection)
+    |
+    |  Purpose:  Allows the user to choose which table to update (Member, Game, or Prize)
+    |            and calls the respective update method.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Updates the chosen table in the database.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void update(Connection dbConn) throws SQLException {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Which table would you like to update? (Member, Game, Prize)");
@@ -546,6 +839,25 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method updateMember(connection)
+    |
+    |  Purpose:  Allows the user to choose how to update the Member table
+    |            (Add, Update, or Delete) and calls the respective method.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Updates the Member table according to the user's choice.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void updateMember(Connection dbConn) throws SQLException {
         Scanner scanner = new Scanner(System.in);
         System.out.println("How would you like to update the Member table? (Add/Update/Delete)");
@@ -566,6 +878,25 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method addMember(connection)
+    |
+    |  Purpose:  Adds a new member to the Member table in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Inserts a new row into the Member table with the
+    |                  provided member details.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void addMember(Connection dbConn) {
         int newMemberID = getLastMemberID(dbConn) + 1;
         Scanner scanner = new Scanner(System.in);
@@ -611,6 +942,26 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method editMember(connection)
+    |
+    |  Purpose:  Allows the user to edit the details of an existing member
+    |            in the Member table of the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Updates the details of the specified member in the
+    |                  Member table according to the user's input.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void editMember(Connection dbConn) throws SQLException {
         Scanner scanner = new Scanner(System.in);
 
@@ -677,6 +1028,26 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method memberExists(connection, memberId)
+    |
+    |  Purpose:  Checks whether a member with the given ID exists in the
+    |            Member table of the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Returns true if the member exists; otherwise, false.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      memberId -- The ID of the member to check for existence.
+    |
+    |  Throws:
+    |      SQLException -- If an SQL exception occurs during database operations.
+    |
+    |  Returns:  boolean -- True if the member exists; otherwise, false.
+    *-------------------------------------------------------------------*/
     private static boolean memberExists(Connection dbConn, int memberId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM Member WHERE MemberID = ?";
         try {
@@ -732,6 +1103,22 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method updateGame(connection)
+    |
+    |  Purpose:  Allows the user to choose how to update the Game table
+    |            (Add or Delete) and calls the respective method.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Updates the Game table according to the user's choice.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void updateGame(Connection dbConn) {
         Scanner scanner = new Scanner(System.in);
 
@@ -852,7 +1239,6 @@ public class Prog4 {
     |
     |  Returns:  None.
     *-------------------------------------------------------------------*/
-
     private static void updatePrize(Connection dbConn) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("How would you like to update the Prize table? (Add/Delete)");
@@ -953,7 +1339,22 @@ public class Prog4 {
         }
     }
 
-
+    /*---------------------------------------------------------------------
+    |  Method getLastMemberID(connection)
+    |
+    |  Purpose:  Retrieves the last MemberID from the Member table in the
+    |            database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Returns the last MemberID from the Member table.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  int -- The last MemberID from the Member table.
+    *-------------------------------------------------------------------*/
     private static int getLastMemberID(Connection dbConn) {
         try {
             Statement statement = dbConn.createStatement();
@@ -976,6 +1377,24 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method answerQueries(connection)
+    |
+    |  Purpose:  Continually prompts the user for input on queries and
+    |            executes the corresponding query method based on the user's
+    |            choice.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Executes the specified query method or exits the 
+    |                  program based on the user's choice.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void answerQueries(Connection dbConn) {
         Scanner scanner = new Scanner(System.in);
 
@@ -990,6 +1409,7 @@ public class Prog4 {
             System.out.println("(c) For a given member, list all arcade rewards that they can purchase " +  
                                 "with their tickets");
             System.out.println("(d) Get total number of tickets for a given gameID"); 
+            System.out.println("(u) Update"); 
             System.out.println("(e) Exit\n");
 
             // prompting input from user
@@ -1017,6 +1437,13 @@ public class Prog4 {
                     queryD(dbConn);
                     break;
 
+                case "u":
+                    try {
+                        update(dbConn);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    break;
                 // exit if user chose e
                 case "e":
                     scanner.close();
@@ -1119,7 +1546,23 @@ public class Prog4 {
         }
     }
 
-    // TODO: Implement logic to answer query c
+    /*---------------------------------------------------------------------
+    |  Method queryC(connection)
+    |
+    |  Purpose:  Retrieves available rewards for a given member ID based
+    |            on the total tickets earned by the member.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Displays available rewards for the specified member
+    |                  ID along with their ticket costs.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void queryC(Connection dbConn) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter member ID to view available rewards:");
@@ -1198,6 +1641,25 @@ public class Prog4 {
         //scanner.close();
     }
 
+    /*---------------------------------------------------------------------
+    |  Method printTableAttributes(connection, tablesToPrint)
+    |
+    |  Purpose:  Retrieves and prints the attributes (columns) of specified
+    |            tables in the database.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Prints the attributes (columns) of the specified
+    |                  tables if they exist in the database.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |      tablesToPrint -- Array of table names for which attributes need
+    |                       to be printed.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void printTableAttributes(Connection dbConn, String[] tablesToPrint) {
         try {
             DatabaseMetaData metaData = dbConn.getMetaData();
@@ -1231,6 +1693,23 @@ public class Prog4 {
         }
     }
 
+    /*---------------------------------------------------------------------
+    |  Method drop(connection)
+    |
+    |  Purpose:  Drops all tables in the database along with their foreign
+    |            key constraints.
+    |
+    |  Pre-condition:  The JDBC database connection is valid and points to
+    |                  the target database.
+    |
+    |  Post-condition: Drops all tables in the database along with their
+    |                  foreign key constraints.
+    |
+    |  Parameters:
+    |      dbConn -- Connection object representing the database connection.
+    |
+    |  Returns:  None.
+    *-------------------------------------------------------------------*/
     private static void drop(Connection dbConn) {
         String[] tables = {"Transaction", "FoodCoupon", "Gameplay", "Member", "Prize", "Game", "MembershipTier"};
 
