@@ -23,4 +23,6 @@ Tariq Wilson
     * queryB() function
     * queryD() function
     * ER-Diagram
-    * Presentation
+    * design.pdf
+    * implementing add, and delete game and prize tables
+   
