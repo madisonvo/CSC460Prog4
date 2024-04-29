@@ -272,6 +272,9 @@ public class Prog4 {
                 } else {
                     statement.execute(createTableQueries[i]);
                     System.out.println("Table " + tableNames[i] + " created successfully.");
+                    String grantStatement = "GRANT SELECT ON " + tableNames[i] + " TO PUBLIC";
+                    statement.execute(grantStatement);
+                    System.out.println("SELECT privileges granted on " + tableNames[i] + " to PUBLIC.");
                 }
             }
             return true;
