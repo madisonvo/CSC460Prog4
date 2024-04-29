@@ -28,7 +28,9 @@ public class Prog4 {
         importFoodCouponData(dbConn, "FoodCoupon.csv");
         importMembershipTierData(dbConn, "MembershipTier.csv");
         importTransactionData(dbConn, "Transaction.csv");
+
         promptUpdate(dbConn);
+
         answerQueries(dbConn);
     }
 
@@ -220,27 +222,16 @@ public class Prog4 {
                 String[] data = line.split(",");
                 if (!rowExists(dbConn, tableName, data[0])) {
                     statement.setInt(1, Integer.valueOf(data[0]));
-                    System.out.println(1 + " successful");
                     statement.setString(2, data[1]);
-                    System.out.println(2 + " successful");
                     statement.setString(3, data[2]);
-                    System.out.println(3 + " successful");
                     statement.setString(4, data[3]);
-                    System.out.println(4 + " successful");
                     statement.setString(5, data[4]);
-                    System.out.println(5 + " successful");
                     statement.setInt(6, Integer.valueOf(data[5]));
-                    System.out.println(6 + " successful");
                     statement.setDouble(7, Double.valueOf(data[6]));
-                    System.out.println(7 + " successful");
                     statement.setString(8, data[7]);
-                    System.out.println(8 + " successful");
                     statement.setInt(9, Integer.valueOf(data[8]));
-                    System.out.println(9 + " successful");
                     statement.setDate(10, java.sql.Date.valueOf(data[9]));
-                    System.out.println(10 + " successful");
                     statement.setInt(11, Integer.valueOf(data[10]));
-                    System.out.println(11 + " successful");
 
                     statement.executeUpdate();
                 } else {
@@ -252,9 +243,9 @@ public class Prog4 {
             reader.close();
             statement.close();
         } catch (Exception e) {
-            // System.err.println("Could not insert into database tables.");
-            // e.printStackTrace();
-            // System.exit(-1);
+            System.err.println("Could not insert into database tables.");
+            e.printStackTrace();
+            System.exit(-1);
         }
     }
 
@@ -475,7 +466,6 @@ public class Prog4 {
      */
     private static boolean rowExists(Connection dbConn, String tableName, String id) throws SQLException {
         String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + tableName + "ID = ?"; /* query to check for given id */
-        System.out.println(id);
         // try catch for checking for row in table
         try (PreparedStatement statement = dbConn.prepareStatement(query)) {
             // setting facility id to facility attribute index
@@ -503,8 +493,7 @@ public class Prog4 {
                     break;
 
                 case "n":
-                    scanner.close();
-                    break;
+                    return;
 
                 default:
                     System.out.println("\nPlease choose a valid answer (y/n)");
@@ -540,9 +529,11 @@ public class Prog4 {
 
         switch (answer.toLowerCase()) {
             case "add":
+                addMember(dbConn);
                 break;
 
             case "update":
+                editMember(dbConn);
                 break;
 
             case "delete":
@@ -551,7 +542,7 @@ public class Prog4 {
     }
 
     private static void addMember(Connection dbConn) {
-        currMemberID++;
+        currMemberID = getLastMemberID(dbConn) + 1;
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Enter the new member's first name:");
@@ -566,7 +557,64 @@ public class Prog4 {
         System.out.println("Enter the new member's address:");
         String address = scanner.nextLine();
 
-        // String query = 
+        String insert = "INSERT INTO Member VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?)";
+        try {
+            PreparedStatement statement = dbConn.prepareStatement(insert);
+
+            if (!rowExists(dbConn, "Member", String.valueOf(currMemberID))) {
+                statement.setInt(1, currMemberID);
+                statement.setString(2, fName);
+                statement.setString(3, lName);
+                statement.setString(4, phoneNum);
+                statement.setString(5, address);
+                statement.setInt(6, 0);
+                statement.setDouble(7, 0.00);
+                statement.setString(8, " ");
+                statement.setInt(9, 1);
+                statement.setDate(10, java.sql.Date.valueOf("2024-04-29"));
+                statement.setInt(11, 0);
+
+
+                statement.executeUpdate();
+                System.out.println("Successfully added new member " + fName + " " + lName);
+            } else {
+                System.out.println("Skipping duplicate row");
+            }
+        } catch (SQLException e) {
+            System.err.println("Could not add new member.");
+            e.printStackTrace();
+        }
+    }
+
+    private static int getLastMemberID(Connection dbConn) {
+        try {
+            Statement statement = dbConn.createStatement();
+            ResultSet tables = statement.executeQuery("SELECT MAX(MemberID) AS LastMemberID FROM Member");
+
+            if (tables.next()) {
+                int maxMemberID = tables.getInt("LastMemberID");
+                tables.close();
+                statement.close();
+                return maxMemberID;
+            } else {
+                tables.close();
+                statement.close();
+                return 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Couldn't get last member ID.");
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    private static void editMember(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the ID of the member you want to update:");
+        String memberId = scanner.nextLine();
+
+
     }
 
     private static void answerQueries(Connection dbConn) {
