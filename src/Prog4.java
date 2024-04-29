@@ -3,6 +3,8 @@ import java.util.*;
 import java.io.*;
 
 public class Prog4 {
+
+    static int currMemberID = 10;
     public static void main(String[] args) {
         Connection dbConn = null;
         // if there are a correct amount of command line arguments
@@ -23,6 +25,9 @@ public class Prog4 {
         // importGameplayData(dbConn, "Gameplay.csv");
         // importPrizeData(dbConn, "Prize.csv");
         // importFoodCouponData(dbConn, "FoodCoupon.csv");
+        // importMembershipTierData(dbConn, "MembershipTier.csv");
+        // importTransactionData(dbConn, "Transaction.csv");
+        promptUpdate(dbConn);
         answerQueries(dbConn);
     }
 
@@ -396,6 +401,75 @@ public class Prog4 {
         }
     }
 
+    private static void importMembershipTierData(Connection dbConn, String file) {
+        String tableName = "MembershipTier";
+
+        System.out.println(tableName);
+
+        try {
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?)";
+            PreparedStatement statement = dbConn.prepareStatement(insert);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (!rowExists(dbConn, tableName, data[0])) {
+                    statement.setInt(1, Integer.valueOf(data[0]));
+                    statement.setString(2, data[1]);
+                    statement.setDouble(3, Double.valueOf(data[2]));
+                    statement.setDouble(4, Double.valueOf(data[3]));
+                    statement.setInt(5, Integer.valueOf(data[4]));
+
+                    statement.executeUpdate();
+                } else {
+                    System.out.println("Skipping duplicate row");
+                }
+            }
+
+            System.out.println("Successful import of " + file + " into table " + tableName + ".");
+            reader.close();
+            statement.close();
+        } catch (Exception e) {
+            System.err.println("Could not insert into database tables.");
+            e.printStackTrace();
+            // System.exit(-1);
+        }
+    }
+
+    private static void importTransactionData(Connection dbConn, String file) {
+        String tableName = "Transaction";
+
+        System.out.println(tableName);
+
+        try {
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?)";
+            PreparedStatement statement = dbConn.prepareStatement(insert);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (!rowExists(dbConn, tableName, data[0])) {
+                    statement.setInt(1, Integer.valueOf(data[0]));
+                    statement.setString(2, data[2]);
+                    statement.setDouble(3, Double.valueOf(data[1]));
+                    statement.setDate(4, java.sql.Date.valueOf(data[3]));
+
+                    statement.executeUpdate();
+                } else {
+                    System.out.println("Skipping duplicate row");
+                }
+            }
+
+            System.out.println("Successful import of " + file + " into table " + tableName + ".");
+            reader.close();
+            statement.close();
+        } catch (Exception e) {
+            System.err.println("Could not insert into database tables.");
+            e.printStackTrace();
+            // System.exit(-1);
+        }
+    }
+
     /*
      * Function: rowExists
      * Parameters: Connection dbConn - The JDBC database connection.
@@ -413,7 +487,6 @@ public class Prog4 {
      */
     private static boolean rowExists(Connection dbConn, String tableName, String id) throws SQLException {
         String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + tableName + "ID = ?"; /* query to check for given id */
-        System.out.println(id);
         // try catch for checking for row in table
         try (PreparedStatement statement = dbConn.prepareStatement(query)) {
             // setting facility id to facility attribute index
@@ -426,6 +499,84 @@ public class Prog4 {
                 return resultSet.getInt(1) > 0;
             }
         }
+    }
+
+    private static void promptUpdate(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Would you like to update the tables? (y/n)");
+            String answer = scanner.nextLine();
+
+            switch (answer.toLowerCase()) {
+                case "y":
+                    update(dbConn);
+                    break;
+
+                case "n":
+                    break;
+
+                default:
+                    System.out.println("\nPlease choose a valid answer (y/n)");
+            }
+        }
+    }
+
+    private static void update(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Which table would you like to update? (Member, Game, Prize)");
+        String answer = scanner.nextLine();
+
+        switch (answer.toLowerCase()) {
+            case "member":
+                updateMember(dbConn);
+                break;
+
+            case "game":
+                break;
+
+            case "prize":
+                break;
+
+            case "default":
+                System.out.println("\nPlease choose a valid table (Member/Game/Prize)");
+        }
+    }
+
+    private static void updateMember(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("How would you like to update the Member table? (Add/Update/Delete)");
+        String answer = scanner.nextLine();
+
+        switch (answer.toLowerCase()) {
+            case "add":
+                break;
+
+            case "update":
+                break;
+
+            case "delete":
+                break;
+        }
+    }
+
+    private static void addMember(Connection dbConn) {
+        currMemberID++;
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the new member's first name:");
+        String fName = scanner.nextLine();
+
+        System.out.println("Enter the new member's last name:");
+        String lName = scanner.nextLine();
+
+        System.out.println("Enter the new member's phone number:");
+        String phoneNum = scanner.nextLine();
+
+        System.out.println("Enter the new member's address:");
+        String address = scanner.nextLine();
+
+        String query = 
     }
 
     private static void answerQueries(Connection dbConn) {
@@ -447,7 +598,7 @@ public class Prog4 {
             System.out.println("(e) Exit\n");
 
             // prompting input from user
-            System.out.println("Enter your query of choice (a, b, c, d, or e)");
+            System.out.println("Enter your query of choice (a/b/c/d/e)");
             String query = scanner.nextLine();
 
             switch (query.toLowerCase()) {
@@ -479,7 +630,7 @@ public class Prog4 {
 
                 // invalid input
                 default:
-                    System.out.println("\nPlease choose a valid query (a, b, c, d, or e)");
+                    System.out.println("\nPlease choose a valid query (a/b/c/d/e)");
             }
         }
     }
