@@ -4,8 +4,6 @@ import java.io.*;
 
 public class Prog4 {
 
-    static int currMemberID = 10;
-
     public static void main(String[] args) {
         Connection dbConn = null;
         // if there are a correct amount of command line arguments
@@ -547,7 +545,7 @@ public class Prog4 {
     }
 
     private static void addMember(Connection dbConn) {
-        currMemberID = getLastMemberID(dbConn) + 1;
+        int newMemberID = getLastMemberID(dbConn) + 1;
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Enter the new member's first name:");
@@ -566,8 +564,8 @@ public class Prog4 {
         try {
             PreparedStatement statement = dbConn.prepareStatement(insert);
 
-            if (!rowExists(dbConn, "Member", String.valueOf(currMemberID))) {
-                statement.setInt(1, currMemberID);
+            if (!rowExists(dbConn, "Member", String.valueOf(newMemberID))) {
+                statement.setInt(1, newMemberID);
                 statement.setString(2, fName);
                 statement.setString(3, lName);
                 statement.setString(4, phoneNum);

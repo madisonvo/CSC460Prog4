@@ -3,12 +3,15 @@
 
 ---WORKLOAD DISTRIBUTION---
 Madison Vo
+    * E-R Diagram Template
     * getConnection() function
     * answerQueries() function
-    * tableExists() function
-    * importMemberData() function
-        - created Member.txt
-    * rowExists() function
+    * creating csv files with sample data
+    * importing sample data into Tables
+    * implementing application interface
+        - add, update, delete member
+        - add or delete game
+        - add or delete prize
     * queryC() function
 
 Tariq Wilson
