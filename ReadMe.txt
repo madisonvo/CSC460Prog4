@@ -5,6 +5,11 @@
 Madison Vo
     * getConnection() function
     * answerQueries() function
+    * tableExists() function
+    * importMemberData() function
+        - created Member.txt
+    * rowExists() function
+    * queryC() function
 
 Tariq Wilson
     * createTables() function

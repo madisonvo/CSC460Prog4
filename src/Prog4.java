@@ -15,6 +15,14 @@ public class Prog4 {
             System.exit(-1);
         }
 
+        createTables(dbConn);
+        String[] tableNames = {"Member", "Game", "Gameplay", "Prize", "FoodCoupon", "MembershipTier", "Transaction"};
+        printTableAttributes(dbConn, tableNames);
+        // importMemberData(dbConn, "Member.csv");
+        importGameData(dbConn, "Game.csv");
+        // importGameplayData(dbConn, "Gameplay.csv");
+        // importPrizeData(dbConn, "Prize.csv");
+        // importFoodCouponData(dbConn, "FoodCoupon.csv");
         answerQueries(dbConn);
     }
 
@@ -27,7 +35,7 @@ public class Prog4 {
      * 
      * Post-condition: TODO
      * 
-     * Purpose: 
+     * Purpose: TODO
      */
     private static Connection getConnection(String[] args) {
         final String oracleURL = "jdbc:oracle:thin:@aloe.cs.arizona.edu:1521:oracle"; /* lectura -> aloe access spell */
@@ -61,6 +69,365 @@ public class Prog4 {
         return dbConn;
     }
 
+    /*---------------------------------------------------------------------
+    |  Method createTables(connection)
+    |
+    |  Purpose:  Creates tables in the database to store data for each entity
+    |            if they do not already exist. The method executes SQL statements
+    |            to create tables for the Member, Game, Gameplay, Prize, FoodCoupon,
+    |            and MembershipTier entities.
+    |
+    |  Pre-condition:  Connection to the database is established.
+    |
+    |  Post-condition: Tables are created in the database if they do not exist.
+    |
+    |  Parameters:
+    |      connection -- Connection object representing the database connection.
+    |
+    |  Returns:  boolean -- True if tables are created successfully, false otherwise.
+    *-------------------------------------------------------------------*/
+    public static boolean createTables(Connection dbConn) {
+        // SQL statements to create tables
+        String createMemberTable = "CREATE TABLE Member (" +
+        "MemberID INT PRIMARY KEY, " +
+        "Fname VARCHAR(50), " +
+        "Lname VARCHAR(50), " +
+        "TelephoneNum VARCHAR(20), " +
+        "Address VARCHAR(255), " +
+        "GameTokens INT, " +
+        "TotalSpending DECIMAL(10, 2), " +
+        "MembershipTier VARCHAR(50), " +
+        "VisitCount INT, " +
+        "LastVisitDate DATE, " +
+        "TotalTickets INT" +
+        ")";
+        
+        String createGameTable = "CREATE TABLE Game (" +
+        "GameID INT PRIMARY KEY, " +
+        "Name VARCHAR(100), " +
+        "TokenCost INT, " +
+        "Tickets INT" +
+        ")";
+
+        String createGameplayTable = "CREATE TABLE Gameplay (" +
+        "GameplayID INT PRIMARY KEY, " +
+        "MemberID INT, " +
+        "GameID INT, " +
+        "Score INT, " +
+        "TicketsEarned INT, " +
+        "Date DATE, " +
+        "FOREIGN KEY (MemberID) REFERENCES Member(MemberID), " +
+        "FOREIGN KEY (GameID) REFERENCES Game(GameID)" +
+        ")";
+
+        String createPrizeTable = "CREATE TABLE Prize (" +
+        "PrizeID INT PRIMARY KEY, " +
+        "Name VARCHAR(100), " +
+        "TicketCost INT" +
+        ")";
+
+        String createFoodCouponTable = "CREATE TABLE FoodCoupon (" +
+        "FoodCouponID INT PRIMARY KEY, " +
+        "MemberID INT, " +
+        "RedeemedFood VARCHAR(100), " +
+        "Used BOOLEAN, " +
+        "FOREIGN KEY (MemberID) REFERENCES Member(MemberID)" +
+        ")";
+
+        String createMembershipTierTable = "CREATE TABLE MembershipTier (" +
+        "MembershipTierID INT PRIMARY KEY, " +
+        "Name VARCHAR(100), " +
+        "TotalSpendingReq DECIMAL(10, 2), " +
+        "DiscountPercentage DECIMAL(5, 2), " +
+        "FreeTickets INT" +
+        ")";
+
+        String createTransactionTable = "CREATE TABLE Transaction (" +
+        "TransactionID INT PRIMARY KEY, " +
+        "Type VARCHAR(50), " +
+        "Amount DECIMAL(10, 2), " +
+        "Date DATE" +
+        ")";
+
+        String[] tableNames = {"Member", "Game", "Gameplay", "Prize", "FoodCoupon", "MembershipTier", "Transaction"};
+        String[] createTableQueries = {createMemberTable, createGameTable, createGameplayTable, createPrizeTable, createFoodCouponTable, createMembershipTierTable, createTransactionTable};
+
+        try (Statement statement = dbConn.createStatement()) {
+            // Check if tables already exist
+            for (int i = 0; i < tableNames.length; i++) {
+                if (!tableExists(dbConn, tableNames[i])) {
+                    System.out.println("Table " + tableNames[i] + " already exists.");
+                } else {
+                    statement.execute(createTableQueries[i]);
+                    System.out.println("Table " + tableNames[i] + " created successfully.");
+                }
+            }
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+        /*
+     * Function: tableExists
+     * Parameters: Connection dbConn - The JDBC database connection.
+     *             String tableName - The name of the table we want to check if it exists.
+     * Returns: true - table doesn't exist.
+     *          false - table exists.
+     * 
+     * Pre-condition: The JDBC database connection is valid.
+     * 
+     * Post-condition: True or false will be returned.
+     * 
+     * Purpose: This function is responsible for checking to see if the given tableName exists within
+     *          the given JDBC database connection, returning true if it doesn't, false otherwise.
+     */
+    private static boolean tableExists(Connection dbConn, String tableName) {
+        // try catch for checking to see if given table name exists
+        try {
+            DatabaseMetaData metadata = dbConn.getMetaData(); /* grabbing data from JDBC database connection */
+            ResultSet tables = metadata.getTables(null, null, tableName, null); /* grabbing given table name */
+
+            // true if not found, false otherwise
+            return tables.next();
+
+        // catch SQLException
+        } catch (SQLException e) {
+            System.err.println("Could not check to see if table already exists.");
+            return false;
+        }
+    }
+
+    private static void importMemberData(Connection dbConn, String file) {
+        String tableName = "Member";
+
+        System.out.println(tableName);
+
+        try {
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?)";
+            PreparedStatement statement = dbConn.prepareStatement(insert);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                for (int i = 0; i < data.length; i ++) {
+                    System.out.println(data[i]);
+                }
+                if (!rowExists(dbConn, tableName, data[0])) {
+                    statement.setInt(1, Integer.valueOf(data[0]));
+                    System.out.println(1 + " successful");
+                    statement.setString(2, data[1]);
+                    System.out.println(2 + " successful");
+                    statement.setString(3, data[2]);
+                    System.out.println(3 + " successful");
+                    statement.setString(4, data[3]);
+                    System.out.println(4 + " successful");
+                    statement.setString(5, data[4]);
+                    System.out.println(5 + " successful");
+                    statement.setInt(6, Integer.valueOf(data[5]));
+                    System.out.println(6 + " successful");
+                    statement.setDouble(7, Double.valueOf(data[6]));
+                    System.out.println(7 + " successful");
+                    statement.setString(8, data[7]);
+                    System.out.println(8 + " successful");
+                    statement.setInt(9, Integer.valueOf(data[8]));
+                    System.out.println(9 + " successful");
+                    statement.setDate(10, java.sql.Date.valueOf(data[9]));
+                    System.out.println(10 + " successful");
+                    statement.setInt(11, Integer.valueOf(data[10]));
+                    System.out.println(11 + " successful");
+
+                    statement.executeUpdate();
+                } else {
+                    System.out.println("Skipping duplicate row");
+                }
+            }
+
+            System.out.println("Successful import of " + file + " into table " + tableName + ".");
+            reader.close();
+            statement.close();
+        } catch (Exception e) {
+            System.err.println("Could not insert into database tables.");
+            e.printStackTrace();
+            // System.exit(-1);
+        }
+    }
+
+    private static void importGameData(Connection dbConn, String file) {
+        String tableName = "Game";
+
+        System.out.println(tableName);
+
+        try {
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?)";
+            PreparedStatement statement = dbConn.prepareStatement(insert);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (!rowExists(dbConn, tableName, data[0])) {
+                    statement.setInt(1, Integer.valueOf(data[0]));
+                    statement.setString(2, data[1]);
+                    statement.setInt(3, Integer.valueOf(data[2]));
+                    statement.setInt(4, Integer.valueOf(data[3]));
+
+                    statement.executeUpdate();
+                } else {
+                    System.out.println("Skipping duplicate row");
+                }
+            }
+
+            System.out.println("Successful import of " + file + " into table " + tableName + ".");
+            reader.close();
+            statement.close();
+        } catch (Exception e) {
+            System.err.println("Could not insert into database tables.");
+            e.printStackTrace();
+            // System.exit(-1);
+        }
+    }
+
+    private static void importGameplayData(Connection dbConn, String file) {
+        String tableName = "Gameplay";
+
+        System.out.println(tableName);
+
+        try {
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'))";
+            PreparedStatement statement = dbConn.prepareStatement(insert);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (!rowExists(dbConn, tableName, data[0])) {
+                    statement.setInt(1, Integer.valueOf(data[0]));
+                    System.out.println(1 + " successful");
+                    statement.setInt(2, Integer.valueOf(data[1]));
+                    System.out.println(2 + " successful");
+                    statement.setInt(3, Integer.valueOf(data[2]));
+                    System.out.println(3 + " successful");
+                    statement.setInt(4, Integer.valueOf(data[3]));
+                    System.out.println(4 + " successful");
+                    statement.setInt(5, Integer.valueOf(data[4]));
+                    System.out.println(5 + " successful");
+                    statement.setString(6, data[5]);
+
+                    statement.executeUpdate();
+                } else {
+                    System.out.println("Skipping duplicate row");
+                }
+            }
+
+            System.out.println("Successful import of " + file + " into table " + tableName + ".");
+            reader.close();
+            statement.close();
+        } catch (Exception e) {
+            System.err.println("Could not insert into database tables.");
+            e.printStackTrace();
+            // System.exit(-1);
+        }
+    }
+
+    private static void importPrizeData(Connection dbConn, String file) {
+        String tableName = "Prize";
+
+        System.out.println(tableName);
+
+        try {
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?)";
+            PreparedStatement statement = dbConn.prepareStatement(insert);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (!rowExists(dbConn, tableName, data[0])) {
+                    statement.setInt(1, Integer.valueOf(data[0]));
+                    statement.setString(2, data[1]);
+                    statement.setInt(3, Integer.valueOf(data[2]));
+
+                    statement.executeUpdate();
+                } else {
+                    System.out.println("Skipping duplicate row");
+                }
+            }
+
+            System.out.println("Successful import of " + file + " into table " + tableName + ".");
+            reader.close();
+            statement.close();
+        } catch (Exception e) {
+            System.err.println("Could not insert into database tables.");
+            e.printStackTrace();
+            // System.exit(-1);
+        }
+    }
+
+    private static void importFoodCouponData(Connection dbConn, String file) {
+        String tableName = "FoodCoupon";
+
+        System.out.println(tableName);
+
+        try {
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?)";
+            PreparedStatement statement = dbConn.prepareStatement(insert);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (!rowExists(dbConn, tableName, data[0])) {
+                    statement.setInt(1, Integer.valueOf(data[0]));
+                    statement.setInt(2, Integer.valueOf(data[1]));
+                    statement.setString(3, data[2]);
+                    statement.setBoolean(4, Boolean.valueOf(data[3]));
+
+                    statement.executeUpdate();
+                } else {
+                    System.out.println("Skipping duplicate row");
+                }
+            }
+
+            System.out.println("Successful import of " + file + " into table " + tableName + ".");
+            reader.close();
+            statement.close();
+        } catch (Exception e) {
+            System.err.println("Could not insert into database tables.");
+            e.printStackTrace();
+            // System.exit(-1);
+        }
+    }
+
+    /*
+     * Function: rowExists
+     * Parameters: Connection dbConn - The JDBC database connection.
+     *             String tableName - The name of the table we want to check if a given row exists in.
+     *             String facilityId - The facility id we want to check exists in the given table name.
+     * Returns: true if the row exists
+     *          false if the row doesn't exist
+     * 
+     * Pre-condition: The JDBC database connection, table, and facility id are valid.
+     * 
+     * Post-condition: Returns true or false.
+     * 
+     * Purpose: This function is responsible for checking to see if a row (given a facility id) exists
+     *          within the given table name in the given JDBC database connection.
+     */
+    private static boolean rowExists(Connection dbConn, String tableName, String id) throws SQLException {
+        String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + tableName + "ID = ?"; /* query to check for given id */
+        System.out.println(id);
+        // try catch for checking for row in table
+        try (PreparedStatement statement = dbConn.prepareStatement(query)) {
+            // setting facility id to facility attribute index
+            statement.setInt(1, Integer.valueOf(id));
+
+            // try catch for checking if the row exists
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                // true if exists, false otherwise
+                return resultSet.getInt(1) > 0;
+            }
+        }
+    }
+
     private static void answerQueries(Connection dbConn) {
         Scanner scanner = new Scanner(System.in);
 
@@ -68,11 +435,11 @@ public class Prog4 {
         while (true) {
             // printing out menu of queries to choose from
             System.out.println("\nQueries:");
-            System.out.println("(a) List all games in the arcade and the names of the members who" + 
+            System.out.println("(a) List all games in the arcade and the names of the members who " + 
                                 "have the current high scores");
-            System.out.println("(b) Give the names and membership information of all members who" + 
+            System.out.println("(b) Give the names and membership information of all members who " + 
                                 "have spent at least $100 on tokens in the past month");
-            System.out.println("(c) For a given member, list all arcade rewards that they can purchase" +  
+            System.out.println("(c) For a given member, list all arcade rewards that they can purchase " +  
                                 "with their tickets");
             // TODO: Create a non-trivial query of our own design
             // TODO: Must be constructed using at least on piece of information gathered from user
@@ -135,7 +502,7 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void queryA(Connection dbConn) {
-        try(Statement statement = connection.createStatement()){
+        try(Statement statement = dbConn.createStatement()){
             String query = "SELECT Game.Name, Member.Fname, Member.Lname FROM Game, Member," + 
             " Gameplay WHERE Game.GameID = Gameplay.GameID AND Member.MemberID = Gameplay.MemberID " +
             "AND Gameplay.Score = (SELECT MAX(Score) FROM Gameplay WHERE Gameplay.GameID = Game.GameID)";
@@ -169,7 +536,7 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void queryB(Connection dbConn) {
-        try (Statement statement = connection.createStatement()) {
+        try (Statement statement = dbConn.createStatement()) {
             String query = "SELECT * FROM Member WHERE TotalSpending >= 100 AND LastVisitDate >= SYSDATE - 30";
 
             ResultSet resultSet = statement.executeQuery(query);
@@ -207,111 +574,69 @@ public class Prog4 {
     }
 
     // TODO: Implement logic to answer query c
-    private static void queryC(Connection dbConn) {}
+    private static void queryC(Connection dbConn) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter member ID to view available rewards:");
+        int memberId = scanner.nextInt();
+
+        try {
+            Statement statement = dbConn.createStatement();
+
+            String query = "SELECT Prize.Name, Prize.TicketCost WHERE Prize.TicketCost <= " + 
+                            "(SELECT SUM(Gameplay.TicketsEarned) WHERE Gameplay.MemberID = " + memberId + ")";
+
+            ResultSet tables = statement.executeQuery(query);
+            System.out.println("Available rewards for member ID " + memberId + ":");
+            System.out.println("-----------------------------------------------");
+            while (tables.next()) {
+                String prizeName = tables.getString("Name");
+                int ticketCost = tables.getInt("TicketCost");
+
+                System.out.println("Prize: " + prizeName + ", Ticket cost: " + ticketCost);
+            }
+            System.out.println("-----------------------------------------------");
+        } catch (SQLException e) {
+            System.err.println("Error in calculating query c.");
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
+        scanner.close();
+    }
 
     // TODO: Implement logic to answer query d
     private static void queryD(Connection dbConn) {}
 
-    /*---------------------------------------------------------------------
-    |  Method createTables(connection)
-    |
-    |  Purpose:  Creates tables in the database to store data for each entity
-    |            if they do not already exist. The method executes SQL statements
-    |            to create tables for the Member, Game, Gameplay, Prize, FoodCoupon,
-    |            and MembershipTier entities.
-    |
-    |  Pre-condition:  Connection to the database is established.
-    |
-    |  Post-condition: Tables are created in the database if they do not exist.
-    |
-    |  Parameters:
-    |      connection -- Connection object representing the database connection.
-    |
-    |  Returns:  boolean -- True if tables are created successfully, false otherwise.
-    *-------------------------------------------------------------------*/
-    public static boolean createTables(Connection connection) {
-        // SQL statements to create tables
-        String createMemberTable = "CREATE TABLE Member (" +
-        "MemberID INT PRIMARY KEY, " +
-        "Fname VARCHAR(50), " +
-        "Lname VARCHAR(50), " +
-        "TelephoneNum VARCHAR(20), " +
-        "Address VARCHAR(255), " +
-        "GameTokens INT, " +
-        "TotalSpending DECIMAL(10, 2), " +
-        "MembershipTier INT, " +
-        "VisitCount INT, " +
-        "LastVisitDate DATE, " +
-        "TotalTickets INT" +
-        ")";
-        
-        String createGameTable = "CREATE TABLE Game (" +
-        "GameID INT PRIMARY KEY, " +
-        "Name VARCHAR(100), " +
-        "TokenCost INT, " +
-        "Tickets INT" +
-        ")";
-
-        String createGameplayTable = "CREATE TABLE Gameplay (" +
-        "GameplayID INT PRIMARY KEY, " +
-        "MemberID INT, " +
-        "GameID INT, " +
-        "Score INT, " +
-        "TicketsEarned INT, " +
-        "Date DATE, " +
-        "FOREIGN KEY (MemberID) REFERENCES Member(MemberID), " +
-        "FOREIGN KEY (GameID) REFERENCES Game(GameID)" +
-        ")";
-
-        String createPrizeTable = "CREATE TABLE Prize (" +
-        "PrizeID INT PRIMARY KEY, " +
-        "Name VARCHAR(100), " +
-        "TicketCost INT" +
-        ")";
-
-        String createFoodCouponTable = "CREATE TABLE FoodCoupon (" +
-        "CouponID INT PRIMARY KEY, " +
-        "MemberID INT, " +
-        "RedeemedFood VARCHAR(100), " +
-        "Used BOOLEAN, " +
-        "FOREIGN KEY (MemberID) REFERENCES Member(MemberID)" +
-        ")";
-
-        String createMembershipTierTable = "CREATE TABLE MembershipTier (" +
-        "MembershipID INT PRIMARY KEY, " +
-        "Name VARCHAR(100), " +
-        "TotalSpendingReq DECIMAL(10, 2), " +
-        "DiscountPercentage DECIMAL(5, 2), " +
-        "FreeTickets INT" +
-        ")";
-
-        String createTransactionTable = "CREATE TABLE Transaction (" +
-        "TransactionID INT PRIMARY KEY, " +
-        "Type VARCHAR(50), " +
-        "Amount DECIMAL(10, 2), " +
-        "Date DATE" +
-        ")";
-
-        String[] tableNames = {"Member", "Game", "Gameplay", "Prize", "FoodCoupon", "MembershipTier", "Transaction"};
-        String[] createTableQueries = {createMemberTable, createGameTable, createGameplayTable, createPrizeTable, createFoodCouponTable, createMembershipTierTable, createTransactionTable};
-
-        try (Statement statement = connection.createStatement()) {
-            // Check if tables already exist
-            DatabaseMetaData metaData = connection.getMetaData();
-            for (int i = 0; i < tableNames.length; i++) {
-                ResultSet tables = metaData.getTables(null, null, tableNames[i], null);
+    private static void printTableAttributes(Connection dbConn, String[] tablesToPrint) {
+        try {
+            DatabaseMetaData metaData = dbConn.getMetaData();
+    
+            // Iterate through specified tables
+            for (String tableName : tablesToPrint) {
+                ResultSet tables = metaData.getTables(null, null, tableName, null);
+    
+                // Check if table exists
                 if (!tables.next()) {
-                    statement.execute(createTableQueries[i]);
-                    System.out.println("Table " + tableNames[i] + " created successfully.");
+                    System.out.println("\nTable: " + tableName);
+    
+                    // Get columns for the table
+                    ResultSet columns = metaData.getColumns(null, null, tableName, null);
+    
+                    // Iterate through columns
+                    while (columns.next()) {
+                        String columnName = columns.getString("COLUMN_NAME");
+                        String dataType = columns.getString("TYPE_NAME");
+                        int columnSize = columns.getInt("COLUMN_SIZE");
+                        System.out.println("  " + columnName + " " + dataType + "(" + columnSize + ")");
+                    }
+                    columns.close(); // Close columns ResultSet
                 } else {
-                    System.out.println("Table " + tableNames[i] + " already exists.");
-                    return false;
+                    System.out.println("Table " + tableName + " does not exist.");
                 }
+                tables.close(); // Close tables ResultSet
             }
-            return true;
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
     }
 }
