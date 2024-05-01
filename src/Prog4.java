@@ -108,7 +108,10 @@ public class Prog4 {
             System.err.println("Usage: java JDBC <username> <password>");
             System.exit(-1);
         }
+
+        // drop(dbConn);
         
+        // creating tables
         if (createTables(dbConn)) {
             System.out.println("Tables created successfully.");
             importMemberData(dbConn, "Member.csv");
@@ -119,13 +122,15 @@ public class Prog4 {
             importMembershipTierData(dbConn, "MembershipTier.csv");
             importTransactionData(dbConn, "Transaction.csv");
             System.out.println("Data imported successfully.");
+
+        // tables already exist
         } else {
             System.out.println("Tables already exist. Skipping table creation and data import.");
         }
 
-        promptUpdate(dbConn);
+        promptUpdate(dbConn); // prompt user to update tables
         
-        answerQueries(dbConn);
+        answerQueries(dbConn); // prompt user to get answer to queries
     }
 
     /*---------------------------------------------------------------------
@@ -177,7 +182,7 @@ public class Prog4 {
             System.exit(-1);
         }
 
-        return dbConn;
+        return dbConn; // return JDBC connection
     }
 
     /*---------------------------------------------------------------------
@@ -336,21 +341,19 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void importMemberData(Connection dbConn, String file) {
-        String tableName = "Member";
-
-        System.out.println(tableName);
+        String tableName = "Member"; // initialize string for table name
 
         try {
-            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?)";
-            PreparedStatement statement = dbConn.prepareStatement(insert);
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line = null;
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?)"; // insert statement for member table
+            PreparedStatement statement = dbConn.prepareStatement(insert); // prepare insert statement
+            BufferedReader reader = new BufferedReader(new FileReader(file)); // initialize reader for csv file
+            String line = null; // initialize line variable
+            // iterate through member.csv file
             while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
-                for (int i = 0; i < data.length; i ++) {
-                    System.out.println(data[i]);
-                }
+                String[] data = line.split(","); // split data
+                // if the memberID doesn't yet exist within the table
                 if (!rowExists(dbConn, tableName, data[0])) {
+                    // set all attributes of the member table
                     statement.setInt(1, Integer.valueOf(data[0]));
                     statement.setString(2, data[1]);
                     statement.setString(3, data[2]);
@@ -363,20 +366,18 @@ public class Prog4 {
                     statement.setDate(10, java.sql.Date.valueOf(data[9]));
                     statement.setInt(11, Integer.valueOf(data[10]));
 
+                    // execute update
                     statement.executeUpdate();
+                // memberID already exists in table
                 } else {
                     System.out.println("Skipping duplicate row");
                 }
             }
 
             System.out.println("Successful import of " + file + " into table " + tableName + ".");
-            reader.close();
-            statement.close();
-        } catch (Exception e) {
-            //System.err.println("Could not insert into database tables.");
-            //e.printStackTrace();
-            // System.exit(-1);
-        }
+            reader.close(); // closer reader
+            statement.close(); // close statement
+        } catch (Exception e) {}
     }
 
     /*---------------------------------------------------------------------
@@ -401,36 +402,35 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void importGameData(Connection dbConn, String file) {
-        String tableName = "Game";
-
-        System.out.println(tableName);
-
+        String tableName = "Game"; // initialize string for table name
         try {
-            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?)";
-            PreparedStatement statement = dbConn.prepareStatement(insert);
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line = null;
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?)"; // insert statement for game table
+            PreparedStatement statement = dbConn.prepareStatement(insert); // prepare insert statement 
+            BufferedReader reader = new BufferedReader(new FileReader(file)); // initialize reader for csv file
+            String line = null; // initialize line variable
+            // iterate through each line of csv file
             while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
+                String[] data = line.split(","); // split data
+                // if gameID doesn't yet exist in the table
                 if (!rowExists(dbConn, tableName, data[0])) {
+                    // set all attributes of game
                     statement.setInt(1, Integer.valueOf(data[0]));
                     statement.setString(2, data[1]);
                     statement.setInt(3, Integer.valueOf(data[2]));
                     statement.setInt(4, Integer.valueOf(data[3]));
 
+                    // execute update
                     statement.executeUpdate();
+                // gameID already exists in table
                 } else {
                     System.out.println("Skipping duplicate row");
                 }
             }
 
             System.out.println("Successful import of " + file + " into table " + tableName + ".");
-            reader.close();
-            statement.close();
-        } catch (Exception e) {
-            System.err.println("Could not insert into database tables.");
-            e.printStackTrace();
-        }
+            reader.close(); // close reader
+            statement.close(); // closer statement
+        } catch (Exception e) {}
     }
 
     /*---------------------------------------------------------------------
@@ -455,18 +455,19 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void importGameplayData(Connection dbConn, String file) {
-        String tableName = "Gameplay";
-
-        System.out.println(tableName);
-
+        String tableName = "Gameplay"; // initialize string for table name
+        
         try {
-            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'))";
-            PreparedStatement statement = dbConn.prepareStatement(insert);
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line = null;
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'))"; // insert statement for gameplay table
+            PreparedStatement statement = dbConn.prepareStatement(insert); // prepare insert statement
+            BufferedReader reader = new BufferedReader(new FileReader(file)); // intialize reader for csv file
+            String line = null; // initialize line variable
+            // iterate through every line in csv file
             while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
+                String[] data = line.split(","); // split data
+                // if gameplayID doesn't exist within the table
                 if (!rowExists(dbConn, tableName, data[0])) {
+                    // set all attributes for gameplay
                     statement.setInt(1, Integer.valueOf(data[0]));
                     statement.setInt(2, Integer.valueOf(data[1]));
                     statement.setInt(3, Integer.valueOf(data[2]));
@@ -474,19 +475,18 @@ public class Prog4 {
                     statement.setInt(5, Integer.valueOf(data[4]));
                     statement.setString(6, data[5]);
 
+                    // execute update
                     statement.executeUpdate();
+                // gameplayID already exists within the table
                 } else {
                     System.out.println("Skipping duplicate row");
                 }
             }
 
             System.out.println("Successful import of " + file + " into table " + tableName + ".");
-            reader.close();
-            statement.close();
-        } catch (Exception e) {
-            System.err.println("Could not insert into database tables.");
-            e.printStackTrace();
-        }
+            reader.close(); // close reader
+            statement.close(); // close statement
+        } catch (Exception e) {}
     }
 
     /*---------------------------------------------------------------------
@@ -511,35 +511,35 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void importPrizeData(Connection dbConn, String file) {
-        String tableName = "Prize";
-
-        System.out.println("\nInserting into " + tableName);
+        String tableName = "Prize"; // initialize string for prize table
 
         try {
-            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?)";
-            PreparedStatement statement = dbConn.prepareStatement(insert);
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line = null;
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?)"; // insert statement
+            PreparedStatement statement = dbConn.prepareStatement(insert); // prepare insert statement
+            BufferedReader reader = new BufferedReader(new FileReader(file)); // initialize reader for csv file
+            String line = null; // initialize line variable
+            // iterate through each line of csv file
             while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
+                String[] data = line.split(","); // split data
+                // if prizeID doesn't exist within the table
                 if (!rowExists(dbConn, tableName, data[0])) {
+                    // set all attributes of prize
                     statement.setInt(1, Integer.valueOf(data[0]));
                     statement.setString(2, data[1]);
                     statement.setInt(3, Integer.valueOf(data[2]));
 
+                    // execute update
                     statement.executeUpdate();
+                // prizeID already exists within the table
                 } else {
                     System.out.println("Skipping duplicate row");
                 }
             }
 
             System.out.println("Successful import of " + file + " into table " + tableName + ".");
-            reader.close();
-            statement.close();
-        } catch (Exception e) {
-            System.err.println("Could not insert into database tables.");
-            e.printStackTrace();
-        }
+            reader.close(); // close reader
+            statement.close(); // close statement
+        } catch (Exception e) {}
     }
     
     /*---------------------------------------------------------------------
@@ -564,36 +564,36 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void importFoodCouponData(Connection dbConn, String file) {
-        String tableName = "FoodCoupon";
-
-        System.out.println("\nInserting into " + tableName);
+        String tableName = "FoodCoupon"; // initialize string for table name
 
         try {
-            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?)";
-            PreparedStatement statement = dbConn.prepareStatement(insert);
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line = null;
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?)"; // insert statement for foodCoupon table
+            PreparedStatement statement = dbConn.prepareStatement(insert); // prepare insert statement
+            BufferedReader reader = new BufferedReader(new FileReader(file)); // initialize reader for csv file
+            String line = null; // initialize line variable
+            // iterate through each line of csv file
             while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
+                String[] data = line.split(","); // split data
+                // if foodCouponID doesn't exist within the table
                 if (!rowExists(dbConn, tableName, data[0])) {
+                    // set all attributes for foodCoupon
                     statement.setInt(1, Integer.valueOf(data[0]));
                     statement.setInt(2, Integer.valueOf(data[1]));
                     statement.setString(3, data[2]);
                     statement.setBoolean(4, Boolean.valueOf(data[3]));
 
+                    // execute update
                     statement.executeUpdate();
+                // foodCouponID already exists within table
                 } else {
                     System.out.println("Skipping duplicate row");
                 }
             }
 
             System.out.println("Successful import of " + file + " into table " + tableName + ".");
-            reader.close();
-            statement.close();
-        } catch (Exception e) {
-            System.err.println("Could not insert into database tables.");
-            e.printStackTrace();
-        }
+            reader.close(); // close reader
+            statement.close(); // close statement
+        } catch (Exception e) {}
     }
 
     /*---------------------------------------------------------------------
@@ -618,37 +618,37 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void importMembershipTierData(Connection dbConn, String file) {
-        String tableName = "MembershipTier";
-
-        System.out.println("\nInserting into " + tableName);
+        String tableName = "MembershipTier"; // initialize string for table name
 
         try {
-            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?)";
-            PreparedStatement statement = dbConn.prepareStatement(insert);
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line = null;
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, ?, ?)"; // insert statement for membershipTier table
+            PreparedStatement statement = dbConn.prepareStatement(insert); // prepare statement for insert statement
+            BufferedReader reader = new BufferedReader(new FileReader(file)); // initialize reader for csv file
+            String line = null; // initialize line variable
+            // iterate through every line in csv file
             while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
+                String[] data = line.split(","); // split data
+                // if membershipTierID doesn't exist within table
                 if (!rowExists(dbConn, tableName, data[0])) {
+                    // set all attributes for membershipTier
                     statement.setInt(1, Integer.valueOf(data[0]));
                     statement.setString(2, data[1]);
                     statement.setDouble(3, Double.valueOf(data[2]));
                     statement.setDouble(4, Double.valueOf(data[3]));
                     statement.setInt(5, Integer.valueOf(data[4]));
 
+                    // execute update
                     statement.executeUpdate();
+                // membershiptierID already exists within table
                 } else {
                     System.out.println("Skipping duplicate row");
                 }
             }
 
             System.out.println("Successful import of " + file + " into table " + tableName + ".");
-            reader.close();
-            statement.close();
-        } catch (Exception e) {
-            System.err.println("Could not insert into database tables.");
-            e.printStackTrace();
-        }
+            reader.close(); // close reader 
+            statement.close(); // closer statement
+        } catch (Exception e) {}
     }
 
     /*---------------------------------------------------------------------
@@ -673,36 +673,36 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void importTransactionData(Connection dbConn, String file) {
-        String tableName = "Transaction";
-
-        System.out.println("\nInserting into " + tableName);
+        String tableName = "Transaction"; // initializing string for table name
 
         try {
-            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'))";
-            PreparedStatement statement = dbConn.prepareStatement(insert);
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line = null;
+            String insert = "INSERT INTO " + tableName + " VALUES (?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'))"; // insert statement for transaction table
+            PreparedStatement statement = dbConn.prepareStatement(insert); // prepare insert statement
+            BufferedReader reader = new BufferedReader(new FileReader(file)); // initialize reader for csv file
+            String line = null; // initialize line variable
+            // iterate through each line of csv file
             while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
+                String[] data = line.split(","); // split data
+                // if transactionID doesn't exist within the table
                 if (!rowExists(dbConn, tableName, data[0])) {
+                    // set all attributes for transaction
                     statement.setInt(1, Integer.valueOf(data[0]));
                     statement.setString(2, data[1]);
                     statement.setDouble(3, Double.valueOf(data[2]));
                     statement.setDate(4, java.sql.Date.valueOf(data[3]));
 
+                    // execute update
                     statement.executeUpdate();
+                // transactionID already exists within table
                 } else {
                     System.out.println("Skipping duplicate row");
                 }
             }
 
             System.out.println("Successful import of " + file + " into table " + tableName + ".");
-            reader.close();
-            statement.close();
-        } catch (Exception e) {
-            System.err.println("Could not insert into database tables.");
-            e.printStackTrace();
-        }
+            reader.close(); // close reader
+            statement.close(); // close statement
+        } catch (Exception e) {}
     }
 
     /*---------------------------------------------------------------------
@@ -761,20 +761,24 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void promptUpdate(Connection dbConn) throws SQLException {
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in); // initialize new scanner for user input
 
+        // keep prompting user for input until they enter 'n'
         while (true) {
             System.out.println("\nWould you like to update the tables? (y/n)");
-            String answer = scanner.nextLine();
+            String answer = scanner.nextLine(); // get user input
 
             switch (answer.toLowerCase()) {
+                // update tables
                 case "y":
                     update(dbConn);
                     break;
 
+                // don't update tables
                 case "n":
                     return;
 
+                // invalid input
                 default:
                     System.out.println("\nPlease choose a valid answer (y/n)");
             }
@@ -801,24 +805,28 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void update(Connection dbConn) throws SQLException {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Which table would you like to update? (Member, Game, Prize)");
-        String answer = scanner.nextLine();
+        Scanner scanner = new Scanner(System.in); // initialize new scanner for user input
+        System.out.println("Which table would you like to update? (Member/Game/Prize)");
+        String answer = scanner.nextLine(); // get user input
 
         switch (answer.toLowerCase()) {
+            // update member table
             case "member":
                 updateMember(dbConn);
                 break;
 
+            // update game table
             case "game":
                 updateGame(dbConn);
                 break;
 
+            // update prize table
             case "prize":
                 updatePrize(dbConn);
                 break;
 
-            case "default":
+            // invalid input
+            default:
                 System.out.println("\nPlease choose a valid table (Member/Game/Prize)");
         }
     }
@@ -843,21 +851,29 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void updateMember(Connection dbConn) throws SQLException {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("How would you like to update the Member table? (Add/Update/Delete)");
-        String answer = scanner.nextLine();
+        Scanner scanner = new Scanner(System.in); // initialize new scanner for user input
+        System.out.println("How would you like to update the Member table? (Add/Update/Delete)"); 
+        String answer = scanner.nextLine(); // ger user input
 
         switch (answer.toLowerCase()) {
+            // add member
             case "add":
                 addMember(dbConn);
                 break;
 
+            // edit member
             case "update":
                 editMember(dbConn);
                 break;
 
+            // delete member
             case "delete":
                 deleteMember(dbConn);
+                break;
+
+            // invalid input
+            default:
+                System.out.println("\nPlease choose a valid option (Add/Update/Delete)");
                 break;
         }
     }
@@ -882,26 +898,28 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void addMember(Connection dbConn) {
-        int newMemberID = getLastMemberID(dbConn) + 1;
-        Scanner scanner = new Scanner(System.in);
+        int newMemberID = getLastMemberID(dbConn) + 1; // get new member id to add
+        Scanner scanner = new Scanner(System.in); // initialize scanner for user input
 
         System.out.println("Enter the new member's first name:");
-        String fName = scanner.nextLine();
+        String fName = scanner.nextLine(); // ger first name
 
         System.out.println("Enter the new member's last name:");
-        String lName = scanner.nextLine();
+        String lName = scanner.nextLine(); // get last name
 
         System.out.println("Enter the new member's phone number:");
-        String phoneNum = scanner.nextLine();
+        String phoneNum = scanner.nextLine(); // get phone number
 
         System.out.println("Enter the new member's address:");
-        String address = scanner.nextLine();
+        String address = scanner.nextLine(); // get address
 
-        String insert = "INSERT INTO Member VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?)";
+        String insert = "INSERT INTO Member VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?)"; // insert statement for member table
         try {
-            PreparedStatement statement = dbConn.prepareStatement(insert);
+            PreparedStatement statement = dbConn.prepareStatement(insert); // prepare insert statement
 
+            // memberID doesn't exist within table
             if (!rowExists(dbConn, "Member", String.valueOf(newMemberID))) {
+                // set all attributes of member
                 statement.setInt(1, newMemberID);
                 statement.setString(2, fName);
                 statement.setString(3, lName);
@@ -914,9 +932,10 @@ public class Prog4 {
                 statement.setDate(10, java.sql.Date.valueOf("2024-04-29"));
                 statement.setInt(11, 0);
 
-
+                // execute update
                 statement.executeUpdate();
                 System.out.println("\nSuccessfully added new member " + fName + " " + lName);
+            // memberID already exists within table
             } else {
                 System.out.println("\nSkipping duplicate row");
             }
@@ -947,50 +966,57 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void editMember(Connection dbConn) throws SQLException {
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in); // initialize new scanner for user input
 
         System.out.println("Enter the ID of the member you want to update:");
-        int memberId = scanner.nextInt();
+        int memberId = scanner.nextInt(); // get memberID
         scanner.nextLine();
 
+        // if member doesn't exist within table
         if (!memberExists(dbConn, memberId)) {
             System.out.println("Member with ID " + memberId + " does not exist.");
             return;
         }
 
         System.out.println("What would you like to update for this member? (Phone number/Address/Both)");
-        String toChange = scanner.nextLine();
+        String toChange = scanner.nextLine(); // get user input
 
-        String newPhoneNumber = null;
-        String newAddress = null;
+        String newPhoneNumber = null; // initialize new phone number
+        String newAddress = null; // initialize new address
 
         switch (toChange.toLowerCase()) {
+            // changing phone number
             case "phone number":
                 System.out.println("Enter the new phone number (###-###-####):");
-                newPhoneNumber = scanner.nextLine();
+                newPhoneNumber = scanner.nextLine(); // get new phone number
                 break;
 
+            // changing address
             case "address":
                 System.out.println("Enter the new address:");
-                newAddress = scanner.nextLine();
+                newAddress = scanner.nextLine(); // get new address
                 break;
 
+            // changing both phone number and address
             case "both":
-                System.out.println("Enter the new phone number (###-###-####:");
-                newPhoneNumber = scanner.nextLine();
+                System.out.println("Enter the new phone number (###-###-####):");
+                newPhoneNumber = scanner.nextLine(); // get new phone number
                 System.out.println("Enter the new address:");
-                newAddress = scanner.nextLine();
+                newAddress = scanner.nextLine(); // get new address
                 break;
 
+            // invalid input
             default:
                 System.out.println("\nPlease choose a valid option (Phone number/Address/Both)");
         }
 
-        String update = "UPDATE Member SET ";
+        String update = "UPDATE Member SET "; // initialize update statement
+        // phone number needs to be updated
         if (newPhoneNumber != null) {
             update += "TelephoneNum = '" + newPhoneNumber + "'";
         }
 
+        // address needs to be updates
         if (newAddress != null) {
             if (newPhoneNumber != null) {
                 update += ", ";
@@ -999,8 +1025,10 @@ public class Prog4 {
             update += "Address = '" + newAddress + "'";
         }
 
+        // both phone number and address need to be updated
         if (newPhoneNumber != null || newAddress != null) {
             update += " WHERE MemberID = ?";
+        // no updates to be made
         } else {
             // If no updates are being made, just return
             System.out.println("No updates to perform.");
@@ -1008,9 +1036,9 @@ public class Prog4 {
         }
 
         try {
-            PreparedStatement statement = dbConn.prepareStatement(update);
-            statement.setInt(1, memberId);
-            int updatedRow = statement.executeUpdate();
+            PreparedStatement statement = dbConn.prepareStatement(update); // prepare update statement
+            statement.setInt(1, memberId); // set memberID
+            int updatedRow = statement.executeUpdate(); // execute update
             System.out.println("\n" + updatedRow + " row(s) updated successfully.");
         } catch (SQLException e) {
             System.out.println("\nCould not update row(s).");
@@ -1040,19 +1068,19 @@ public class Prog4 {
     |  Returns:  boolean -- True if the member exists; otherwise, false.
     *-------------------------------------------------------------------*/
     private static boolean memberExists(Connection dbConn, int memberId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Member WHERE MemberID = ?";
+        String sql = "SELECT COUNT(*) FROM Member WHERE MemberID = ?"; // initialize select statement
         try {
-            PreparedStatement statement = dbConn.prepareStatement(sql);
-            statement.setInt(1, memberId);
+            PreparedStatement statement = dbConn.prepareStatement(sql); // prepare select statement
+            statement.setInt(1, memberId); // set memberID
             try (var resultSet = statement.executeQuery()) {
+                // member exists
                 if (resultSet.next()) {
                     int count = resultSet.getInt(1);
                     return count > 0;
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException e) {}
 
-        }
         return false;
     }
 
@@ -1073,47 +1101,58 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void deleteMember(Connection dbConn) throws SQLException {
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in); // initiialize scanner for user input
     
         System.out.println("Enter the Member ID of the member you want to delete:");
-        int memberId = scanner.nextInt();
-        scanner.nextLine(); // Consume newline character
+        int memberId = scanner.nextInt(); // get memberID
+        scanner.nextLine(); // consume newline character
 
+        // member doesn't exist within database
         if (!memberExists(dbConn, memberId)) {
             System.out.println("\nThere is no member in the database with the MemberID " + memberId);
             return;
         }
     
         try {
-            PreparedStatement ticketCheckStatement = dbConn.prepareStatement("SELECT TotalTickets FROM Member WHERE MemberID = ?");
-            ticketCheckStatement.setInt(1, memberId);
-            ResultSet tickets = ticketCheckStatement.executeQuery();
+            PreparedStatement ticketCheckStatement = dbConn.prepareStatement("SELECT TotalTickets FROM Member WHERE MemberID = ?"); // prepare select statement
+            ticketCheckStatement.setInt(1, memberId); // set memberID
+            ResultSet tickets = ticketCheckStatement.executeQuery(); // execute query
             tickets.next();
-            int ticketCount = tickets.getInt(1);
+            int ticketCount = tickets.getInt(1); // get ticket count
 
+            // tickets available
             if (ticketCount > 0) {
-                System.out.println("\nThere are still " + ticketCount + " remaining tickets. Exchange them for a prize? (y/n)");
-                String exchangeChoice = scanner.nextLine().trim();
+                System.out.println("\nThere are still " + ticketCount + " remaining tickets. Exchange them for a prize? (y/n/e)");
+                String exchangeChoice = scanner.nextLine().trim(); // get exchange choice
 
+                // user wants to exchange tickets
                 if (exchangeChoice.equalsIgnoreCase("y")) {
                     exchangeTickets(dbConn, memberId, ticketCount);
-                } else {
+                // user doesn't want to exchange tickers
+                } else if (exchangeChoice.equalsIgnoreCase("n")) {
                     System.out.println("\nTickets will not be exchanged for a prize.");
+                // user wants to exit
+                } else if (exchangeChoice.equalsIgnoreCase("e")) {
+                    return;
+                // invalid input
+                } else {
+                    System.out.println("Invalid choice. Please enter 'y' for yes or 'n' for no or 'e' to exit.");
                 }
             }
 
-            redeemCoupon(dbConn, memberId);
+            redeemCoupon(dbConn, memberId); // redeeming food coupons
 
             PreparedStatement gameplayCheckStatement = dbConn.prepareStatement(
-                "SELECT COUNT(*) FROM Gameplay WHERE MemberID = ?");
-            gameplayCheckStatement.setInt(1, memberId);
-            ResultSet childResultSet = gameplayCheckStatement.executeQuery();
+                "SELECT COUNT(*) FROM Gameplay WHERE MemberID = ?"); // prepare select statement
+            gameplayCheckStatement.setInt(1, memberId); // set memberID
+            ResultSet childResultSet = gameplayCheckStatement.executeQuery(); // get rows
             childResultSet.next();
-            int gameplayCount = childResultSet.getInt(1);
+            int gameplayCount = childResultSet.getInt(1); // get count of rows
 
+            // if there were rows returned
             if (gameplayCount > 0) {
                 System.out.println("This member has associated records in Gameplay table. Deleting Gameplay records.");
-                // Delete associated records in the Gameplay table
+                // delete associated records in the Gameplay table
                 PreparedStatement deleteGameplayStatement = dbConn.prepareStatement(
                         "DELETE FROM Gameplay WHERE MemberID = ?");
                 deleteGameplayStatement.setInt(1, memberId);
@@ -1121,25 +1160,27 @@ public class Prog4 {
             }
 
             PreparedStatement foodCouponCheckStatement = dbConn.prepareStatement(
-                "SELECT COUNT(*) FROM FoodCoupon WHERE MemberID = ?");
-            foodCouponCheckStatement.setInt(1, memberId);
-            ResultSet foodCouponResultSet = foodCouponCheckStatement.executeQuery();
+                "SELECT COUNT(*) FROM FoodCoupon WHERE MemberID = ?"); // prepare select statement
+            foodCouponCheckStatement.setInt(1, memberId); // set memberID
+            ResultSet foodCouponResultSet = foodCouponCheckStatement.executeQuery(); // get rows
             foodCouponResultSet.next();
-            int foodCouponCount = foodCouponResultSet.getInt(1);
+            int foodCouponCount = foodCouponResultSet.getInt(1); // get count of rows
 
+            // if there were rows returned
             if (foodCouponCount > 0) {
                 System.out.println("This member has associated records in FoodCoupon table. Deleting FoodCoupon records.");
-                // Delete associated records in the FoodCoupon table
+                // delete associated records in the FoodCoupon table
                 PreparedStatement deleteFoodCouponStatement = dbConn.prepareStatement(
                         "DELETE FROM FoodCoupon WHERE MemberID = ?");
                 deleteFoodCouponStatement.setInt(1, memberId);
                 deleteFoodCouponStatement.executeUpdate();
             }
 
-            PreparedStatement preparedStatement = dbConn.prepareStatement("DELETE FROM Member WHERE MemberID = ?");
-            preparedStatement.setInt(1, memberId);
-    
-            int rowsAffected = preparedStatement.executeUpdate();
+            PreparedStatement preparedStatement = dbConn.prepareStatement("DELETE FROM Member WHERE MemberID = ?"); // prepare select statement
+            preparedStatement.setInt(1, memberId); // set memberID
+            int rowsAffected = preparedStatement.executeUpdate(); // get rows
+
+            // if there were rows returned
             if (rowsAffected > 0) {
                 System.out.println("\nMember with ID " + memberId + " deleted successfully along with associated records.");
             } else {
@@ -1150,45 +1191,65 @@ public class Prog4 {
         }
     }
 
+    /*
+     * Function: exchangeTickets()
+     * Arugments: Connection dbConn - The JDBC data connection.
+     *            int memberId - The ID of the member we want to delete.
+     *            int ticketCOunt - The number of tickets the member has
+     * Returns: None.
+     * 
+     * Pre-Condition: The JDBC database connection is valid.
+     * 
+     * Post-condition: None.
+     * 
+     * Puprose: This function is responsible for prompting the user to exchange tickets for prize(s).
+     */
     private static void exchangeTickets(Connection dbConn, int memberId, int ticketCount) {
-        Scanner scanner = new Scanner(System.in);
-        int currTickets = ticketCount;
+        Scanner scanner = new Scanner(System.in); // intitialize new scanner
+        int currTickets = ticketCount; // get current number of tickets
 
         try {
+            // while member still has tickets
             while (currTickets > 0) {
                 System.out.println("There are still " + currTickets + " tickets left.");
-                Statement statement = dbConn.createStatement();
+                Statement statement = dbConn.createStatement(); // creating new statement
 
-                String query = "SELECT Prize.Name, Prize.TicketCost FROM Prize WHERE Prize.TicketCost <= " + 
-                                "(SELECT Member.TotalTickets FROM Member WHERE Member.MemberID = " + memberId + ")";
+                String query = "SELECT Prize.Name, Prize.TicketCost FROM Prize WHERE Prize.TicketCost <= " + currTickets; // select query for prizes
 
-                ResultSet tables = statement.executeQuery(query);
-                List<String> availablePrizes = new ArrayList<>();
-                Map<String, Integer> prizeCost = new HashMap<>();
+                ResultSet tables = statement.executeQuery(query); // get rows from query
+                List<String> availablePrizes = new ArrayList<>(); // initialize list for available prizes
+                Map<String, Integer> prizeCost = new HashMap<>(); // initialize map for prize cost of each prize
                 System.out.println("\nAvailable prizes: ");
                 System.out.println("-----------------------------------------------");
+                // iterate through valid rows
                 while (tables.next()) {
-                    String prizeName = tables.getString("Name");
-                    int ticketCost = tables.getInt("TicketCost");
+                    String prizeName = tables.getString("Name"); // get prize name
+                    int ticketCost = tables.getInt("TicketCost"); // get prize cost
 
                     System.out.println("Prize: " + prizeName + ", Ticket cost: " + ticketCost);
-                    availablePrizes.add(prizeName.toLowerCase());
-                    prizeCost.put(prizeName.toLowerCase(), ticketCost);
+                    availablePrizes.add(prizeName.toLowerCase()); // add prize to available prizes
+                    prizeCost.put(prizeName.toLowerCase(), ticketCost); // add prize and prize cost to prizeCost
                 }
 
                 System.out.println("-----------------------------------------------");
 
+                // not enough tickets to redeem any prizes
                 if (availablePrizes.isEmpty()) {
                     System.out.println("You don't have enough tickets to redeem any prizes.");
                     break;
                 } else {
                     System.out.println("\nWhich prize would you like to redeem?");
-                    String prize = scanner.nextLine().trim();
+                    String prize = scanner.nextLine().trim(); // get prize choice from user
 
+                    // if the prize choice is a valid choice
                     if (availablePrizes.contains(prize.toLowerCase())) {
-                        int cost = prizeCost.get(prize.toLowerCase());
+                        int cost = prizeCost.get(prize.toLowerCase()); // get cost of prize
                         System.out.println("\nYou redeemed: " + prize);
-                        currTickets -= cost;
+                        currTickets -= cost; // decrement currTickets by cost of prize
+                    // exit
+                    } else if (prize.toLowerCase() == "e") {
+                        return;
+                    // invalid choice
                     } else {
                         System.out.println("Invalid prize selection. Please choose from the available prizes.");
                     }
@@ -1201,37 +1262,62 @@ public class Prog4 {
         }
     }
 
+    /*
+     * Function: redeemCoupon()
+     * Arguments: Connection dbConn - The JDBC database connection.
+     *            int memberId - The ID of the member we want to delete.
+     * Returns: None.
+     * 
+     * Pre-condition: The JDBC database connection valid and the member exists.
+     * 
+     * Post-condition: None.
+     * 
+     * Purpose: This function is responsible for prompting the user to redeem their food coupons.
+     */
     private static void redeemCoupon(Connection dbConn, int memberId) {
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in); // set new scanner
 
         try {
             while (true) {
                 // Retrieve unredeemed food coupons for the member
                 PreparedStatement selectStatement = dbConn.prepareStatement(
-                        "SELECT FoodCouponID, RedeemedFood FROM FoodCoupon WHERE MemberID = ? AND Used = 0");
-                selectStatement.setInt(1, memberId);
-                ResultSet resultSet = selectStatement.executeQuery();
+                        "SELECT FoodCouponID, RedeemedFood FROM FoodCoupon WHERE MemberID = ? AND Used != 1"); // get all unused food coupon of the member
+                selectStatement.setInt(1, memberId); // set memberId
+                ResultSet resultSet = selectStatement.executeQuery(); // execute query
     
+                // go through all rows returned from query
                 if (resultSet.next()) {
-                    int foodCouponID = resultSet.getInt("FoodCouponID");
-                    String redeemedFood = resultSet.getString("RedeemedFood");
+                    int foodCouponID = resultSet.getInt("FoodCouponID"); // get foodCouponID
+                    String redeemedFood = resultSet.getString("RedeemedFood"); // get redeemed food
     
-                    System.out.println("You have an unredeemed food coupon for " + redeemedFood + ". Would you like to redeem it? (y/n)");
-                    String redeemChoice = scanner.nextLine().trim();
+                    System.out.println("There is an unredeemed food coupon for " + redeemedFood + ". Redeem it? (y/n/e)");
+                    String redeemChoice = scanner.nextLine().trim(); // get users redeem choice
     
+                    // user wants to redeem food coupon
                     if (redeemChoice.equalsIgnoreCase("y")) {
-                        // Update the food coupon to mark it as used
+                        // update the food coupon to mark it as used
                         PreparedStatement updateStatement = dbConn.prepareStatement(
                                 "UPDATE FoodCoupon SET Used = 1 WHERE FoodCouponID = ?");
                         updateStatement.setInt(1, foodCouponID);
                         updateStatement.executeUpdate();
     
                         System.out.println("\nYou redeemed a food coupon for " + redeemedFood + ".");
+                    // user doesn't want to redeem food coupon
                     } else if (redeemChoice.equalsIgnoreCase("n")) {
+                        // update food coupon to mark as used anyways for while loop execution
+                        PreparedStatement updateStatement = dbConn.prepareStatement(
+                                "UPDATE FoodCoupon SET Used = 1 WHERE FoodCouponID = ?");
+                        updateStatement.setInt(1, foodCouponID);
+                        updateStatement.executeUpdate();
                         System.out.println("\nFood coupon for " + redeemedFood + " will not be redeemed.");
+                    // exiy
+                    } else if (redeemChoice.equalsIgnoreCase("e")) {
+                        break;
+                    // invalid choice
                     } else {
-                        System.out.println("Invalid choice. Please enter 'y' for yes or 'n' for no.");
+                        System.out.println("Invalid choice. Please enter 'y' for yes or 'n' for no or 'e' to exit.");
                     }
+                // no unredeemed food coupons
                 } else {
                     System.out.println("\nNo unredeemed food coupons found for this member.");
                     break;
@@ -1531,18 +1617,20 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static int getLastMemberID(Connection dbConn) {
         try {
-            Statement statement = dbConn.createStatement();
-            ResultSet tables = statement.executeQuery("SELECT MAX(MemberID) AS LastMemberID FROM Member");
+            Statement statement = dbConn.createStatement(); // create statement
+            ResultSet tables = statement.executeQuery("SELECT MAX(MemberID) AS LastMemberID FROM Member"); // execute select statement
 
+            // if row was returned
             if (tables.next()) {
-                int maxMemberID = tables.getInt("LastMemberID");
-                tables.close();
-                statement.close();
-                return maxMemberID;
+                int maxMemberID = tables.getInt("LastMemberID"); // getting last memberID
+                tables.close(); // close tables
+                statement.close(); // close statement
+                return maxMemberID; // return last ID
+            // no row returned
             } else {
-                tables.close();
-                statement.close();
-                return 0;
+                tables.close(); // close tables
+                statement.close(); // close statement
+                return 0; // return default ID
             }
         } catch (SQLException e) {
             System.err.println("Couldn't get last member ID.");
@@ -1827,24 +1915,25 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void queryC(Connection dbConn) {
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in); // initialize scanner for user input
         System.out.println("Enter member ID to view available rewards:");
-        int memberId = scanner.nextInt();
+        int memberId = scanner.nextInt(); // get memberID
 
         try {
-            Statement statement = dbConn.createStatement();
+            Statement statement = dbConn.createStatement(); // create statement
 
             String query = "SELECT Prize.Name, Prize.TicketCost FROM Prize WHERE Prize.TicketCost <= " + 
-                            "(SELECT Member.TotalTickets FROM Member WHERE Member.MemberID = " + memberId + ")";
+                            "(SELECT Member.TotalTickets FROM Member WHERE Member.MemberID = " + memberId + ")"; // select statement
 
-            ResultSet tables = statement.executeQuery(query);
+            ResultSet tables = statement.executeQuery(query); /// execute select statement
             System.out.println("\nAvailable rewards for member ID " + memberId + ":");
             System.out.println("-----------------------------------------------");
+            // iterate through every row returned
             while (tables.next()) {
-                String prizeName = tables.getString("Name");
-                int ticketCost = tables.getInt("TicketCost");
+                String prizeName = tables.getString("Name"); // get prize name
+                int ticketCost = tables.getInt("TicketCost"); // ge tticket cost
 
-                System.out.println("Prize: " + prizeName + ", Ticket cost: " + ticketCost);
+                System.out.println("Prize: " + prizeName + ", Ticket cost: " + ticketCost); // print result
             }
             System.out.println("-----------------------------------------------");
         } catch (SQLException e) {
@@ -1903,58 +1992,6 @@ public class Prog4 {
     }
 
     /*---------------------------------------------------------------------
-    |  Method printTableAttributes(connection, tablesToPrint)
-    |
-    |  Purpose:  Retrieves and prints the attributes (columns) of specified
-    |            tables in the database.
-    |
-    |  Pre-condition:  The JDBC database connection is valid and points to
-    |                  the target database.
-    |
-    |  Post-condition: Prints the attributes (columns) of the specified
-    |                  tables if they exist in the database.
-    |
-    |  Parameters:
-    |      dbConn -- Connection object representing the database connection.
-    |      tablesToPrint -- Array of table names for which attributes need
-    |                       to be printed.
-    |
-    |  Returns:  None.
-    *-------------------------------------------------------------------*/
-    private static void printTableAttributes(Connection dbConn, String[] tablesToPrint) {
-        try {
-            DatabaseMetaData metaData = dbConn.getMetaData();
-    
-            // Iterate through specified tables
-            for (String tableName : tablesToPrint) {
-                ResultSet tables = metaData.getTables(null, null, tableName, null);
-    
-                // Check if table exists
-                if (!tables.next()) {
-                    System.out.println("\nTable: " + tableName);
-    
-                    // Get columns for the table
-                    ResultSet columns = metaData.getColumns(null, null, tableName, null);
-    
-                    // Iterate through columns
-                    while (columns.next()) {
-                        String columnName = columns.getString("COLUMN_NAME");
-                        String dataType = columns.getString("TYPE_NAME");
-                        int columnSize = columns.getInt("COLUMN_SIZE");
-                        System.out.println("  " + columnName + " " + dataType + "(" + columnSize + ")");
-                    }
-                    columns.close(); // Close columns ResultSet
-                } else {
-                    System.out.println("Table " + tableName + " does not exist.");
-                }
-                tables.close(); // Close tables ResultSet
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /*---------------------------------------------------------------------
     |  Method drop(connection)
     |
     |  Purpose:  Drops all tables in the database along with their foreign
@@ -1977,7 +2014,7 @@ public class Prog4 {
         try {
             Statement stmt = dbConn.createStatement();
 
-            // Drop foreign key constraints
+            // drop foreign key constraints
             for (String table : tables) {
                 ResultSet rs = stmt.executeQuery(
                     "SELECT constraint_name " +
@@ -1992,7 +2029,7 @@ public class Prog4 {
                 }
             }
 
-            // Drop tables
+            // drop tables
             for (String table : tables) {
                 stmt.execute("DROP TABLE " + table);
                 System.out.println("Dropped table: " + table);
