@@ -203,7 +203,7 @@ public class Prog4 {
     |  Returns:  boolean -- True if tables are created successfully, false otherwise.
     *-------------------------------------------------------------------*/
     public static boolean createTables(Connection dbConn) {
-        // SQL statements to create tables
+        // SQL statements to create table for member
         String createMemberTable = "CREATE TABLE Member (" +
         "MemberID INT PRIMARY KEY, " +
         "Fname VARCHAR(50), " +
@@ -217,14 +217,14 @@ public class Prog4 {
         "LastVisitDate DATE, " +
         "TotalTickets INT" +
         ")";
-        
+        // SQL statements to create table for game
         String createGameTable = "CREATE TABLE Game (" +
         "GameID INT PRIMARY KEY, " +
         "Name VARCHAR(100), " +
         "TokenCost INT, " +
         "Tickets INT" +
         ")";
-
+        // SQL statements to create table for gameplay
         String createGameplayTable = "CREATE TABLE Gameplay (" +
         "GameplayID INT PRIMARY KEY, " +
         "MemberID INT, " +
@@ -235,13 +235,13 @@ public class Prog4 {
         "FOREIGN KEY (MemberID) REFERENCES Member(MemberID), " +
         "FOREIGN KEY (GameID) REFERENCES Game(GameID)" +
         ")";
-
+        // SQL statements to create table for prize
         String createPrizeTable = "CREATE TABLE Prize (" +
         "PrizeID INT PRIMARY KEY, " +
         "Name VARCHAR(100), " +
         "TicketCost INT" +
         ")";
-
+        // SQL statements to create table for foodcoupon
         String createFoodCouponTable = "CREATE TABLE FoodCoupon (" +
         "FoodCouponID INT PRIMARY KEY, " +
         "MemberID INT, " +
@@ -249,7 +249,7 @@ public class Prog4 {
         "Used NUMBER(1), " +
         "FOREIGN KEY (MemberID) REFERENCES Member(MemberID)" +
         ")";
-
+        // SQL statements to create table for membershiptier
         String createMembershipTierTable = "CREATE TABLE MembershipTier (" +
         "MembershipTierID INT PRIMARY KEY, " +
         "Name VARCHAR(100), " +
@@ -257,7 +257,7 @@ public class Prog4 {
         "DiscountPercentage DECIMAL(5, 2), " +
         "FreeTickets INT" +
         ")";
-
+        // SQL statements to create table for transaction
         String createTransactionTable = "CREATE TABLE Transaction (" +
         "TransactionID INT PRIMARY KEY, " +
         "Type VARCHAR(50), " +
@@ -265,16 +265,19 @@ public class Prog4 {
         "\"Date\" DATE" +
         ")";
 
+        //list of the names of tables to be used later for creation processing
         String[] tableNames = {"Member", "Game", "Gameplay", "Prize", "FoodCoupon", "MembershipTier", "Transaction"};
         String[] createTableQueries = {createMemberTable, createGameTable, createGameplayTable, createPrizeTable, createFoodCouponTable, createMembershipTierTable, createTransactionTable};
-
+        
+        // here the table creation statements are ran
         try (Statement statement = dbConn.createStatement()) {
             // Check if tables already exist
             for (int i = 0; i < tableNames.length; i++) {
                 if (tableExists(dbConn, tableNames[i])) {
                     System.out.println("Table " + tableNames[i] + " already exists.");
-                    return false;
+                    return false; // if the table exists 
                 } else {
+                    // if the table does not already exist it is created as well as granted public privilege.
                     statement.execute(createTableQueries[i]);
                     System.out.println("Table " + tableNames[i] + " created successfully.");
                     String grantStatement = "GRANT SELECT ON " + tableNames[i] + " TO PUBLIC";
@@ -1347,19 +1350,26 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static void updateGame(Connection dbConn) {
         Scanner scanner = new Scanner(System.in);
-
+    
+        // Prompt user for the action they want to perform
         System.out.println("How would you like to update the Game table? (Add/Delete)");
         String answer = scanner.nextLine();
     
+        // Convert the user's input to lowercase for case-insensitive comparison
         switch (answer.toLowerCase()) {
+            // If user wants to add a game
             case "add":
+                // Call the method to add a game
                 addGame(dbConn);
                 break;
     
+            // If user wants to delete a game
             case "delete":
+                // Call the method to delete a game
                 deleteGame(dbConn);
                 break;
     
+            // If user input is not recognized
             default:
                 System.out.println("\nPlease choose a valid action (Add/Delete)");
         }
@@ -1386,26 +1396,31 @@ public class Prog4 {
     private static void deleteGame(Connection dbConn) {
         Scanner scanner = new Scanner(System.in);
 
+        // Prompt the user to enter the ID of the game to delete
         System.out.println("Enter the ID of the game you want to delete:");
         int gameID = scanner.nextInt();
         scanner.nextLine(); 
 
         try (Statement statement = dbConn.createStatement()) {
-            // delete gameplay records associated with the game
+            // Delete gameplay records associated with the game
             String deleteGameplayQuery = "DELETE FROM Gameplay WHERE GameID = " + gameID;
             int gameplayDeleted = statement.executeUpdate(deleteGameplayQuery);
 
-            //  delete the game entry itself
+            // Delete the game entry itself
             String deleteGameQuery = "DELETE FROM Game WHERE GameID = " + gameID;
             int gameDeleted = statement.executeUpdate(deleteGameQuery);
 
+            // Check if the game was deleted successfully
             if (gameDeleted > 0) {
+                // Print success message along with the number of related gameplay records deleted
                 System.out.println("Game with ID " + gameID + " deleted successfully.");
                 System.out.println("Related gameplay records deleted: " + gameplayDeleted);
             } else {
+                // Print message if no game was found with the provided ID
                 System.out.println("No game found with ID " + gameID);
             }
         } catch (SQLException e) {
+            // Print any SQL exceptions that occur during deletion
             e.printStackTrace();
         }
     }
@@ -1430,28 +1445,37 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void addGame(Connection dbConn) {
+        // Get the ID for the new game by incrementing the last game ID
         int newGameID = getLastGameID(dbConn) + 1;
         Scanner scanner = new Scanner(System.in);
-
+    
+        // Prompt the user to enter the name of the new game
         System.out.println("Enter the name of the new game:");
         String name = scanner.nextLine();
-
+    
+        // Prompt the user to enter the token cost of the new game
         System.out.println("Enter the token cost of the new game:");
         int tokenCost = scanner.nextInt();
-        scanner.nextLine(); 
-
+        scanner.nextLine(); // Consume newline character
+    
+        // Prompt the user to enter the number of tickets earned by playing the new game
         System.out.println("Enter the number of tickets earned by playing the new game:");
         int tickets = scanner.nextInt();
-        scanner.nextLine(); 
+        scanner.nextLine(); // Consume newline character
+    
         try (Statement statement = dbConn.createStatement()) {
+            // Construct the SQL INSERT query using the provided information
             String query = String.format("INSERT INTO Game (GameID, Name, TokenCost, Tickets) VALUES (%d, '%s', %d, %d)", newGameID, name, tokenCost, tickets);
+            // Execute the SQL INSERT statement
             int rowsAffected = statement.executeUpdate(query);
+            // Check if the insertion was successful and print appropriate message
             if (rowsAffected > 0) {
                 System.out.println("New game added successfully.");
             } else {
                 System.out.println("Failed to add new game.");
             }
         } catch (SQLException e) {
+            // Print any SQL exceptions that occur during insertion
             e.printStackTrace();
         }
     }
@@ -1473,20 +1497,30 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void updatePrize(Connection dbConn) {
+        // Create a scanner object to read user input
         Scanner scanner = new Scanner(System.in);
+        
+        // Prompt the user to specify the action they want to perform on the Prize table
         System.out.println("How would you like to update the Prize table? (Add/Delete)");
         String answer = scanner.nextLine();
     
+        // Switch statement to handle different actions based on user input
         switch (answer.toLowerCase()) {
+            // If the user chooses to add a prize
             case "add":
+                // Call the addPrize method to add a new prize
                 addPrize(dbConn);
                 break;
     
+            // If the user chooses to delete a prize
             case "delete":
+                // Call the deletePrize method to delete an existing prize
                 deletePrize(dbConn);
                 break;
     
+            // If the user inputs an invalid action
             default:
+                // Prompt the user to choose a valid action
                 System.out.println("\nPlease choose a valid action (Add/Delete)");
         }
     }
@@ -1510,30 +1544,36 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void deletePrize(Connection dbConn) {
+        // Create a scanner object to read user input
         Scanner scanner = new Scanner(System.in);
+        
+        // Prompt the user to enter the ID of the prize they want to delete
         System.out.println("Enter the ID of the prize you want to delete:");
         int prizeID = scanner.nextInt();
     
+        // Prompt the user to enter the ID of the member who wants to redeem the prize
         System.out.println("Enter the ID of the member who wants to redeem this prize:");
         int memberID = scanner.nextInt();
     
         try (Statement statement = dbConn.createStatement()) {
-            // check for prize
+            // Check if the prize exists in the Prize table
             ResultSet resultSet = statement.executeQuery("SELECT * FROM Prize WHERE PrizeID = " + prizeID);
             if (resultSet.next()) {
+                // Get the ticket cost of the prize
                 int ticketCost = resultSet.getInt("TicketCost");
     
-                // check tickets
+                // Check if the member exists and has enough tickets to redeem the prize
                 ResultSet memberResultSet = statement.executeQuery("SELECT TotalTickets FROM Member WHERE MemberID = " + memberID);
                 if (memberResultSet.next()) {
                     int totalTickets = memberResultSet.getInt("TotalTickets");
+                    // If the member has enough tickets to redeem the prize
                     if (totalTickets >= ticketCost) {
-                        // set new ticket
+                        // Update the member's total tickets after redeeming the prize
                         int newTotalTickets = totalTickets - ticketCost;
                         String updateQuery = "UPDATE Member SET TotalTickets = " + newTotalTickets + " WHERE MemberID = " + memberID;
                         statement.executeUpdate(updateQuery);
     
-                        // remove prrize
+                        // Delete the prize from the Prize table
                         String deleteQuery = "DELETE FROM Prize WHERE PrizeID = " + prizeID;
                         int rowsAffected = statement.executeUpdate(deleteQuery);
                         if (rowsAffected > 0) {
@@ -1575,19 +1615,27 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void addPrize(Connection dbConn) {
+        // Get the ID for the new prize by incrementing the last prize ID in the database
         int newPrizeID = getLastPrizeID(dbConn) + 1;
+        
+        // Create a scanner object to read user input
         Scanner scanner = new Scanner(System.in);
-    
+        
+        // Prompt the user to enter the name of the new prize
         System.out.println("Enter the name of the new prize:");
         String newName = scanner.nextLine();
-    
+        
+        // Prompt the user to enter the ticket cost for the new prize
         System.out.println("Enter the ticket cost for the new prize:");
         int newTicketCost = scanner.nextInt();
-    
+        
         try (PreparedStatement preparedStatement = dbConn.prepareStatement("INSERT INTO Prize (PrizeID, Name, TicketCost) VALUES (?, ?, ?)")) {
+            // Set the parameters for the prepared statement
             preparedStatement.setInt(1, newPrizeID);
             preparedStatement.setString(2, newName);
             preparedStatement.setInt(3, newTicketCost);
+            
+            // Execute the prepared statement and get the number of rows affected
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
                 System.out.println("New prize added successfully.");
@@ -1660,20 +1708,31 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static int getLastGameID(Connection dbConn) {
         try {
+            // Create a statement object to execute SQL queries
             Statement statement = dbConn.createStatement();
+            
+            // Execute a query to get the maximum GameID from the Game table
             ResultSet resultSet = statement.executeQuery("SELECT MAX(GameID) AS LastGameID FROM Game");
-    
+            
+            // Check if the query returned any results
             if (resultSet.next()) {
+                // Get the maximum GameID from the result set
                 int maxGameID = resultSet.getInt("LastGameID");
+                
+                // Close the result set and statement to release resources
                 resultSet.close();
                 statement.close();
+                
+                // Return the maximum GameID
                 return maxGameID;
             } else {
+                // If no result is found, close the result set and statement and return 0
                 resultSet.close();
                 statement.close();
                 return 0;
             }
         } catch (SQLException e) {
+            // Print an error message if an SQL exception occurs
             System.err.println("Couldn't get last game ID.");
             e.printStackTrace();
             return 0;
@@ -1701,20 +1760,31 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static int getLastPrizeID(Connection dbConn) {
         try {
+            // Create a statement object to execute SQL queries
             Statement statement = dbConn.createStatement();
+            
+            // Execute a query to get the maximum PrizeID from the Prize table
             ResultSet resultSet = statement.executeQuery("SELECT MAX(PrizeID) AS LastPrizeID FROM Prize");
-    
+            
+            // Check if the query returned any results
             if (resultSet.next()) {
+                // Get the maximum PrizeID from the result set
                 int maxPrizeID = resultSet.getInt("LastPrizeID");
+                
+                // Close the result set and statement to release resources
                 resultSet.close();
                 statement.close();
+                
+                // Return the maximum PrizeID
                 return maxPrizeID;
             } else {
+                // If no result is found, close the result set and statement and return 0
                 resultSet.close();
                 statement.close();
                 return 0;
             }
         } catch (SQLException e) {
+            // Print an error message if an SQL exception occurs
             System.err.println("Couldn't get last prize ID.");
             e.printStackTrace();
             return 0;
@@ -1819,19 +1889,30 @@ public class Prog4 {
     |  Returns:  None.
     *-------------------------------------------------------------------*/
     private static void queryA(Connection dbConn) {
-        try(Statement statement = dbConn.createStatement()){
-            String query = "SELECT Game.Name, Member.Fname, Member.Lname, Gameplay.Score FROM Game, Member," + 
-            " Gameplay WHERE Game.GameID = Gameplay.GameID AND Member.MemberID = Gameplay.MemberID " +
-            "AND Gameplay.Score = (SELECT MAX(Score) FROM Gameplay WHERE Gameplay.GameID = Game.GameID)";
+        try (Statement statement = dbConn.createStatement()) {
+            // SQL query to select game name, member first name, member last name, and score from the database
+            String query = "SELECT Game.Name, Member.Fname, Member.Lname, Gameplay.Score " +
+                           "FROM Game, Member, Gameplay " +
+                           "WHERE Game.GameID = Gameplay.GameID AND Member.MemberID = Gameplay.MemberID " +
+                           "AND Gameplay.Score = (SELECT MAX(Score) FROM Gameplay WHERE Gameplay.GameID = Game.GameID)";
+            
+            // Execute the query and get the result set
             ResultSet rs = statement.executeQuery(query);
-
+    
+            // Print the header for the result
             System.out.println("\nGames in arcade and current high scores:");
             System.out.println("--------------------------------------------");
-            while(rs.next()){
-                System.out.println("Game: " + rs.getString("Name") + " High Score: " + rs.getString("Fname") + " " + rs.getString("Lname") + " with a score of " + rs.getInt("Score"));
+    
+            // Iterate over the result set and print each row
+            while (rs.next()) {
+                // Print the game name, member first name, member last name, and score
+                System.out.println("Game: " + rs.getString("Name") + " High Score: " + rs.getString("Fname") + " " +
+                                   rs.getString("Lname") + " with a score of " + rs.getInt("Score"));
             }
+            // Print the footer for the result
             System.out.println("--------------------------------------------");
-        }catch (SQLException e) {
+        } catch (SQLException e) {
+            // Print any SQL exceptions that occur
             e.printStackTrace();
         }
     }
@@ -1855,17 +1936,22 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static void queryB(Connection dbConn) {
         try (Statement statement = dbConn.createStatement()) {
+            // SQL query to select member information of members who have spent at least $100 on tokens in the past month
             String query = "SELECT MemberID, Fname, Lname, TelephoneNum, Address, GameTokens, TotalSpending, " +
-               "MembershipTier, VisitCount, LastVisitDate, TotalTickets " +
-               "FROM Member " +
-               "WHERE TotalSpending >= 100.00 ";
-
-
+                           "MembershipTier, VisitCount, LastVisitDate, TotalTickets " +
+                           "FROM Member " +
+                           "WHERE TotalSpending >= 100.00";
+    
+            // Execute the query and get the result set
             ResultSet resultSet = statement.executeQuery(query);
-
+    
+            // Print the header for the result
             System.out.println("\nNames and membership information of all members who have spent at least $100 on tokens in the past month:");
             System.out.println("------------------------------------------------------------");
+    
+            // Iterate over the result set and print each member's information
             while (resultSet.next()) {
+                // Retrieve member information from the result set
                 int memberID = resultSet.getInt("MemberID");
                 String firstName = resultSet.getString("Fname");
                 String lastName = resultSet.getString("Lname");
@@ -1877,7 +1963,8 @@ public class Prog4 {
                 int visitCount = resultSet.getInt("VisitCount");
                 String lastVisitDate = resultSet.getString("LastVisitDate");
                 int totalTickets = resultSet.getInt("TotalTickets");
-
+    
+                // Print member information
                 System.out.println("Member ID: " + memberID);
                 System.out.println("Name: " + firstName + " " + lastName);
                 System.out.println("Telephone Number: " + telephoneNum);
@@ -1890,9 +1977,11 @@ public class Prog4 {
                 System.out.println("Total Tickets: " + totalTickets);
                 System.out.println("--------------------------------------------");
             }
+    
+            // Print the footer for the result
             System.out.println("--------------------------------------------");
-            
-        }catch (SQLException e) {
+        } catch (SQLException e) {
+            // Print any SQL exceptions that occur
             e.printStackTrace();
         }
     }
@@ -1964,30 +2053,42 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static void queryD(Connection dbConn) {
         Scanner scanner = new Scanner(System.in);
+    
+        // Prompt the user to enter the Game ID
         System.out.println("Enter Game ID:");
         int gameId = scanner.nextInt();
-
+    
         try {
+            // Create a statement for executing SQL queries
             Statement statement = dbConn.createStatement();
-
+    
+            // SQL query to select the total tickets earned by each member for the specified Game ID
             String query = "SELECT MemberID, SUM(TicketsEarned) AS TotalTicketsEarned FROM Gameplay WHERE GameID = " + gameId + " GROUP BY MemberID";
-
+    
+            // Execute the query and get the result set
             ResultSet resultSet = statement.executeQuery(query);
-
+    
+            // Print the header for the result
             System.out.println("\nTotal tickets earned by each member for Game ID " + gameId + ":");
             System.out.println("-----------------------------------------------");
+    
+            // Iterate over the result set and print each member's total tickets earned
             while (resultSet.next()) {
                 int memberId = resultSet.getInt("MemberID");
                 int totalTicketsEarned = resultSet.getInt("TotalTicketsEarned");
-
+    
                 System.out.println("Member ID: " + memberId + ", Total Tickets Earned: " + totalTicketsEarned);
             }
+    
+            // Print the footer for the result
             System.out.println("-----------------------------------------------");
         } catch (SQLException e) {
+            // Print error message if there is an SQL exception
             System.err.println("Error in executing query d.");
             e.printStackTrace();
         }
-
+    
+        // Close the scanner
         //scanner.close();
     }
 
