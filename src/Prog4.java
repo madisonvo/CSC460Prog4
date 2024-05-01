@@ -1080,17 +1080,117 @@ public class Prog4 {
         scanner.nextLine(); // Consume newline character
     
         try {
+            PreparedStatement ticketCheckStatement = dbConn.prepareStatement("SELECT TotalTickets FROM Member WHERE MemberID = ?");
+            ticketCheckStatement.setInt(1, memberId);
+            ResultSet tickets = ticketCheckStatement.executeQuery();
+            tickets.next();
+            int ticketCount = tickets.getInt(1);
+
+            if (ticketCount > 0) {
+                System.out.println("\nThere are still " + ticketCount + " remaining tickets. Exchange them for a prize? (y/n)");
+                String exchangeChoice = scanner.nextLine().trim();
+
+                if (exchangeChoice.equalsIgnoreCase("Y")) {
+                    exchangeTickets(dbConn, memberId, ticketCount);
+                } else {
+                    System.out.println("\nTickets will not be exchanged for a prize, deleting member now");
+                }
+            }
+
+            PreparedStatement gameplayCheckStatement = dbConn.prepareStatement(
+                "SELECT COUNT(*) FROM Gameplay WHERE MemberID = ?");
+            gameplayCheckStatement.setInt(1, memberId);
+            ResultSet childResultSet = gameplayCheckStatement.executeQuery();
+            childResultSet.next();
+            int gameplayCount = childResultSet.getInt(1);
+
+            if (gameplayCount > 0) {
+                System.out.println("This member has associated records in Gameplay table. Deleting Gameplay records.");
+                // Delete associated records in the Gameplay table
+                PreparedStatement deleteGameplayStatement = dbConn.prepareStatement(
+                        "DELETE FROM Gameplay WHERE MemberID = ?");
+                deleteGameplayStatement.setInt(1, memberId);
+                deleteGameplayStatement.executeUpdate();
+            }
+
+            PreparedStatement foodCouponCheckStatement = dbConn.prepareStatement(
+                "SELECT COUNT(*) FROM FoodCoupon WHERE MemberID = ?");
+            foodCouponCheckStatement.setInt(1, memberId);
+            ResultSet foodCouponResultSet = foodCouponCheckStatement.executeQuery();
+            foodCouponResultSet.next();
+            int foodCouponCount = foodCouponResultSet.getInt(1);
+
+            if (foodCouponCount > 0) {
+                System.out.println("This member has associated records in FoodCoupon table. Deleting FoodCoupon records.");
+                // Delete associated records in the FoodCoupon table
+                PreparedStatement deleteFoodCouponStatement = dbConn.prepareStatement(
+                        "DELETE FROM FoodCoupon WHERE MemberID = ?");
+                deleteFoodCouponStatement.setInt(1, memberId);
+                deleteFoodCouponStatement.executeUpdate();
+            }
+
             PreparedStatement preparedStatement = dbConn.prepareStatement("DELETE FROM Member WHERE MemberID = ?");
             preparedStatement.setInt(1, memberId);
     
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("\nMember with ID " + memberId + " deleted successfully.");
+                System.out.println("\nMember with ID " + memberId + " deleted successfully along with associated records.");
             } else {
                 System.out.println("\nNo member found with ID " + memberId + ".");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void exchangeTickets(Connection dbConn, int memberId, int ticketCount) {
+        Scanner scanner = new Scanner(System.in);
+        int currTickets = ticketCount;
+
+        try {
+            while (currTickets > 0) {
+                System.out.println("There are still " + currTickets + " tickets left.");
+                Statement statement = dbConn.createStatement();
+
+                String query = "SELECT Prize.Name, Prize.TicketCost FROM Prize WHERE Prize.TicketCost <= " + 
+                                "(SELECT Member.TotalTickets FROM Member WHERE Member.MemberID = " + memberId + ")";
+
+                ResultSet tables = statement.executeQuery(query);
+                List<String> availablePrizes = new ArrayList<>();
+                Map<String, Integer> prizeCost = new HashMap<>();
+                System.out.println("\nAvailable prizes: ");
+                System.out.println("-----------------------------------------------");
+                while (tables.next()) {
+                    String prizeName = tables.getString("Name");
+                    int ticketCost = tables.getInt("TicketCost");
+
+                    System.out.println("Prize: " + prizeName + ", Ticket cost: " + ticketCost);
+                    availablePrizes.add(prizeName.toLowerCase());
+                    prizeCost.put(prizeName.toLowerCase(), ticketCost);
+                }
+
+                System.out.println("-----------------------------------------------");
+
+                if (availablePrizes.isEmpty()) {
+                    System.out.println("You don't have enough tickets to redeem any prizes.");
+                    break;
+                } else {
+                    System.out.println("\nWhich prize would you like to redeem?");
+                    String prize = scanner.nextLine().trim();
+
+                    if (availablePrizes.contains(prize.toLowerCase())) {
+                        int cost = prizeCost.get(prize.toLowerCase());
+                        System.out.println("\nYou redeemed: " + prize);
+                        currTickets -= cost;
+                    } else {
+                        System.out.println("Invalid prize selection. Please choose from the available prizes.");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error in redeeming prize.");
+            e.printStackTrace();
+            System.exit(-1);
         }
     }
 
