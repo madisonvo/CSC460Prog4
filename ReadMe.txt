@@ -16,6 +16,7 @@ Madison Vo
     * importing sample data into Tables
     * implementing application interface for add, update, delete member
     * queryC() function
+    * drop() function
 
 Tariq Wilson
     * createTables() function

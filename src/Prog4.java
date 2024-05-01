@@ -1244,15 +1244,16 @@ public class Prog4 {
                     System.out.println("\nWhich prize would you like to redeem?");
                     String prize = scanner.nextLine().trim(); // get prize choice from user
 
+                    if (prize == "e") {
+                        return;
+                    }
+
                     // if the prize choice is a valid choice
                     if (availablePrizes.contains(prize.toLowerCase())) {
                         int cost = prizeCost.get(prize.toLowerCase()); // get cost of prize
                         System.out.println("\nYou redeemed: " + prize);
                         currTickets -= cost; // decrement currTickets by cost of prize
                     // exit
-                    } else if (prize.toLowerCase() == "e") {
-                        return;
-                    // invalid choice
                     } else {
                         System.out.println("Invalid prize selection. Please choose from the available prizes.");
                     }
