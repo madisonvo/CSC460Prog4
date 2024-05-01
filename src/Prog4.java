@@ -1378,12 +1378,40 @@ public class Prog4 {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter the ID of the prize you want to delete:");
         int prizeID = scanner.nextInt();
-
+    
+        System.out.println("Enter the ID of the member who wants to redeem this prize:");
+        int memberID = scanner.nextInt();
+    
         try (Statement statement = dbConn.createStatement()) {
-            String deleteQuery = "DELETE FROM Prize WHERE PrizeID = " + prizeID;
-            int rowsAffected = statement.executeUpdate(deleteQuery);
-            if (rowsAffected > 0) {
-                System.out.println("Prize with ID " + prizeID + " deleted successfully.");
+            // check for prize
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM Prize WHERE PrizeID = " + prizeID);
+            if (resultSet.next()) {
+                int ticketCost = resultSet.getInt("TicketCost");
+    
+                // check tickets
+                ResultSet memberResultSet = statement.executeQuery("SELECT TotalTickets FROM Member WHERE MemberID = " + memberID);
+                if (memberResultSet.next()) {
+                    int totalTickets = memberResultSet.getInt("TotalTickets");
+                    if (totalTickets >= ticketCost) {
+                        // set new ticket
+                        int newTotalTickets = totalTickets - ticketCost;
+                        String updateQuery = "UPDATE Member SET TotalTickets = " + newTotalTickets + " WHERE MemberID = " + memberID;
+                        statement.executeUpdate(updateQuery);
+    
+                        // remove prrize
+                        String deleteQuery = "DELETE FROM Prize WHERE PrizeID = " + prizeID;
+                        int rowsAffected = statement.executeUpdate(deleteQuery);
+                        if (rowsAffected > 0) {
+                            System.out.println("Prize with ID " + prizeID + " deleted successfully.");
+                        } else {
+                            System.out.println("No prize found with ID " + prizeID);
+                        }
+                    } else {
+                        System.out.println("Member with ID " + memberID + " does not have enough tickets to redeem this prize.");
+                    }
+                } else {
+                    System.out.println("Member with ID " + memberID + " does not exist.");
+                }
             } else {
                 System.out.println("No prize found with ID " + prizeID);
             }
