@@ -349,27 +349,16 @@ public class Prog4 {
                 }
                 if (!rowExists(dbConn, tableName, data[0])) {
                     statement.setInt(1, Integer.valueOf(data[0]));
-                    System.out.println(1 + " successful");
                     statement.setString(2, data[1]);
-                    System.out.println(2 + " successful");
                     statement.setString(3, data[2]);
-                    System.out.println(3 + " successful");
                     statement.setString(4, data[3]);
-                    System.out.println(4 + " successful");
                     statement.setString(5, data[4]);
-                    System.out.println(5 + " successful");
                     statement.setInt(6, Integer.valueOf(data[5]));
-                    System.out.println(6 + " successful");
                     statement.setDouble(7, Double.valueOf(data[6]));
-                    System.out.println(7 + " successful");
                     statement.setString(8, data[7]);
-                    System.out.println(8 + " successful");
                     statement.setInt(9, Integer.valueOf(data[8]));
-                    System.out.println(9 + " successful");
                     statement.setDate(10, java.sql.Date.valueOf(data[9]));
-                    System.out.println(10 + " successful");
                     statement.setInt(11, Integer.valueOf(data[10]));
-                    System.out.println(11 + " successful");
 
                     statement.executeUpdate();
                 } else {
@@ -476,15 +465,10 @@ public class Prog4 {
                 String[] data = line.split(",");
                 if (!rowExists(dbConn, tableName, data[0])) {
                     statement.setInt(1, Integer.valueOf(data[0]));
-                    System.out.println(1 + " successful");
                     statement.setInt(2, Integer.valueOf(data[1]));
-                    System.out.println(2 + " successful");
                     statement.setInt(3, Integer.valueOf(data[2]));
-                    System.out.println(3 + " successful");
                     statement.setInt(4, Integer.valueOf(data[3]));
-                    System.out.println(4 + " successful");
                     statement.setInt(5, Integer.valueOf(data[4]));
-                    System.out.println(5 + " successful");
                     statement.setString(6, data[5]);
 
                     statement.executeUpdate();
@@ -741,7 +725,6 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static boolean rowExists(Connection dbConn, String tableName, String id) throws SQLException {
         String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + tableName + "ID = ?"; /* query to check for given id */
-        System.out.println(id);
         // try catch for checking for row in table
         try (PreparedStatement statement = dbConn.prepareStatement(query)) {
             // setting facility id to facility attribute index
@@ -787,8 +770,6 @@ public class Prog4 {
                     break;
 
                 case "n":
-                    //scanner.close();
-                    //break;
                     return;
 
                 default:
@@ -932,12 +913,12 @@ public class Prog4 {
 
 
                 statement.executeUpdate();
-                System.out.println("Successfully added new member " + fName + " " + lName);
+                System.out.println("\nSuccessfully added new member " + fName + " " + lName);
             } else {
-                System.out.println("Skipping duplicate row");
+                System.out.println("\nSkipping duplicate row");
             }
         } catch (SQLException e) {
-            System.err.println("Could not add new member.");
+            System.err.println("\nCould not add new member.");
             e.printStackTrace();
         }
     }
@@ -967,6 +948,7 @@ public class Prog4 {
 
         System.out.println("Enter the ID of the member you want to update:");
         int memberId = scanner.nextInt();
+        scanner.nextLine();
 
         if (!memberExists(dbConn, memberId)) {
             System.out.println("Member with ID " + memberId + " does not exist.");
@@ -981,7 +963,7 @@ public class Prog4 {
 
         switch (toChange.toLowerCase()) {
             case "phone number":
-                System.out.println("Enter the new phone number (###-###-####:");
+                System.out.println("Enter the new phone number (###-###-####):");
                 newPhoneNumber = scanner.nextLine();
                 break;
 
@@ -998,7 +980,7 @@ public class Prog4 {
                 break;
 
             default:
-                System.out.println("Please choose a valid option (Phone number/Address/Both)");
+                System.out.println("\nPlease choose a valid option (Phone number/Address/Both)");
         }
 
         String update = "UPDATE Member SET ";
@@ -1014,15 +996,21 @@ public class Prog4 {
             update += "Address = '" + newAddress + "'";
         }
 
-        update += "WHERE MemberID = ?";
+        if (newPhoneNumber != null || newAddress != null) {
+            update += " WHERE MemberID = ?";
+        } else {
+            // If no updates are being made, just return
+            System.out.println("No updates to perform.");
+            return;
+        }
 
         try {
             PreparedStatement statement = dbConn.prepareStatement(update);
             statement.setInt(1, memberId);
             int updatedRow = statement.executeUpdate();
-            System.out.println(updatedRow + " row(s) updated successfully.");
+            System.out.println("\n" + updatedRow + " row(s) updated successfully.");
         } catch (SQLException e) {
-            System.out.println("Could not update row(s).");
+            System.out.println("\nCould not update row(s).");
             e.printStackTrace();
             System.exit(-1);
         }
@@ -1094,9 +1082,9 @@ public class Prog4 {
     
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Member with ID " + memberId + " deleted successfully.");
+                System.out.println("\nMember with ID " + memberId + " deleted successfully.");
             } else {
-                System.out.println("No member found with ID " + memberId + ".");
+                System.out.println("\nNo member found with ID " + memberId + ".");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -1254,7 +1242,7 @@ public class Prog4 {
                 break;
     
             default:
-                System.out.println("\nPlease choose a valid action (AddDelete)");
+                System.out.println("\nPlease choose a valid action (Add/Delete)");
         }
     }
 
@@ -1533,7 +1521,7 @@ public class Prog4 {
 
                 // invalid input
                 default:
-                    System.out.println("\nPlease choose a valid query (a, b, c, d, or e)");
+                    System.out.println("\nPlease choose a valid query (a, b, c, d, u or e)");
             }
         }
     }
@@ -1557,7 +1545,7 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static void queryA(Connection dbConn) {
         try(Statement statement = dbConn.createStatement()){
-            String query = "SELECT Game.Name, Member.Fname, Member.Lname FROM Game, Member," + 
+            String query = "SELECT Game.Name, Member.Fname, Member.Lname, Gameplay.Score FROM Game, Member," + 
             " Gameplay WHERE Game.GameID = Gameplay.GameID AND Member.MemberID = Gameplay.MemberID " +
             "AND Gameplay.Score = (SELECT MAX(Score) FROM Gameplay WHERE Gameplay.GameID = Game.GameID)";
             ResultSet rs = statement.executeQuery(query);
@@ -1565,7 +1553,7 @@ public class Prog4 {
             System.out.println("\nGames in arcade and current high scores:");
             System.out.println("--------------------------------------------");
             while(rs.next()){
-                System.out.println("Game: " + rs.getString("Name") + " High Score: " + rs.getString("Fname") + " " + rs.getString("Lname"));
+                System.out.println("Game: " + rs.getString("Name") + " High Score: " + rs.getString("Fname") + " " + rs.getString("Lname") + " with a score of " + rs.getInt("Score"));
             }
             System.out.println("--------------------------------------------");
         }catch (SQLException e) {
@@ -1592,12 +1580,9 @@ public class Prog4 {
     *-------------------------------------------------------------------*/
     private static void queryB(Connection dbConn) {
         try (Statement statement = dbConn.createStatement()) {
-            String query = "SELECT MemberID, Fname, Lname, TelephoneNum, Address, GameTokens, TotalSpending, " +
-               "MembershipTier, VisitCount, LastVisitDate, TotalTickets " +
-               "FROM Member " +
-               "WHERE TotalSpending >= 100.00 " +
-               "AND LastVisitDate >= TRUNC(SYSDATE - 30)";
-
+            String query = "SELECT * FROM Member " +
+               "WHERE TotalSpending >= 100.00" ;
+            //    + "AND LastVisitDate >= TRUNC(SYSDATE) - 30";
 
             ResultSet resultSet = statement.executeQuery(query);
 
