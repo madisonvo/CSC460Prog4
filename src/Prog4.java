@@ -1072,12 +1072,17 @@ public class Prog4 {
     |
     |  Returns:  None.
     *-------------------------------------------------------------------*/
-    private static void deleteMember(Connection dbConn) {
+    private static void deleteMember(Connection dbConn) throws SQLException {
         Scanner scanner = new Scanner(System.in);
     
         System.out.println("Enter the Member ID of the member you want to delete:");
         int memberId = scanner.nextInt();
         scanner.nextLine(); // Consume newline character
+
+        if (!memberExists(dbConn, memberId)) {
+            System.out.println("\nThere is no member in the database with the MemberID " + memberId);
+            return;
+        }
     
         try {
             PreparedStatement ticketCheckStatement = dbConn.prepareStatement("SELECT TotalTickets FROM Member WHERE MemberID = ?");
@@ -1090,12 +1095,14 @@ public class Prog4 {
                 System.out.println("\nThere are still " + ticketCount + " remaining tickets. Exchange them for a prize? (y/n)");
                 String exchangeChoice = scanner.nextLine().trim();
 
-                if (exchangeChoice.equalsIgnoreCase("Y")) {
+                if (exchangeChoice.equalsIgnoreCase("y")) {
                     exchangeTickets(dbConn, memberId, ticketCount);
                 } else {
-                    System.out.println("\nTickets will not be exchanged for a prize, deleting member now");
+                    System.out.println("\nTickets will not be exchanged for a prize.");
                 }
             }
+
+            redeemCoupon(dbConn, memberId);
 
             PreparedStatement gameplayCheckStatement = dbConn.prepareStatement(
                 "SELECT COUNT(*) FROM Gameplay WHERE MemberID = ?");
@@ -1191,6 +1198,48 @@ public class Prog4 {
             System.err.println("Error in redeeming prize.");
             e.printStackTrace();
             System.exit(-1);
+        }
+    }
+
+    private static void redeemCoupon(Connection dbConn, int memberId) {
+        Scanner scanner = new Scanner(System.in);
+
+        try {
+            while (true) {
+                // Retrieve unredeemed food coupons for the member
+                PreparedStatement selectStatement = dbConn.prepareStatement(
+                        "SELECT FoodCouponID, RedeemedFood FROM FoodCoupon WHERE MemberID = ? AND Used = 0");
+                selectStatement.setInt(1, memberId);
+                ResultSet resultSet = selectStatement.executeQuery();
+    
+                if (resultSet.next()) {
+                    int foodCouponID = resultSet.getInt("FoodCouponID");
+                    String redeemedFood = resultSet.getString("RedeemedFood");
+    
+                    System.out.println("You have an unredeemed food coupon for " + redeemedFood + ". Would you like to redeem it? (y/n)");
+                    String redeemChoice = scanner.nextLine().trim();
+    
+                    if (redeemChoice.equalsIgnoreCase("y")) {
+                        // Update the food coupon to mark it as used
+                        PreparedStatement updateStatement = dbConn.prepareStatement(
+                                "UPDATE FoodCoupon SET Used = 1 WHERE FoodCouponID = ?");
+                        updateStatement.setInt(1, foodCouponID);
+                        updateStatement.executeUpdate();
+    
+                        System.out.println("\nYou redeemed a food coupon for " + redeemedFood + ".");
+                    } else if (redeemChoice.equalsIgnoreCase("n")) {
+                        System.out.println("\nFood coupon for " + redeemedFood + " will not be redeemed.");
+                    } else {
+                        System.out.println("Invalid choice. Please enter 'y' for yes or 'n' for no.");
+                    }
+                } else {
+                    System.out.println("\nNo unredeemed food coupons found for this member.");
+                    break;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error redeeming food coupons.");
+            e.printStackTrace();
         }
     }
 
